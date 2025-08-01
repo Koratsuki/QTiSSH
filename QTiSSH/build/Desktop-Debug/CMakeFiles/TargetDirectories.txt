@@ -1,9 +1,0 @@
-/home/koratsuki/Dev/Projects/QT/QTiSSH/QTiSSH/build/Desktop-Debug/CMakeFiles/QTiSSH.dir
-/home/koratsuki/Dev/Projects/QT/QTiSSH/QTiSSH/build/Desktop-Debug/CMakeFiles/edit_cache.dir
-/home/koratsuki/Dev/Projects/QT/QTiSSH/QTiSSH/build/Desktop-Debug/CMakeFiles/rebuild_cache.dir
-/home/koratsuki/Dev/Projects/QT/QTiSSH/QTiSSH/build/Desktop-Debug/CMakeFiles/list_install_components.dir
-/home/koratsuki/Dev/Projects/QT/QTiSSH/QTiSSH/build/Desktop-Debug/CMakeFiles/install.dir
-/home/koratsuki/Dev/Projects/QT/QTiSSH/QTiSSH/build/Desktop-Debug/CMakeFiles/install/local.dir
-/home/koratsuki/Dev/Projects/QT/QTiSSH/QTiSSH/build/Desktop-Debug/CMakeFiles/install/strip.dir
-/home/koratsuki/Dev/Projects/QT/QTiSSH/QTiSSH/build/Desktop-Debug/CMakeFiles/QTiSSH_autogen_timestamp_deps.dir
-/home/koratsuki/Dev/Projects/QT/QTiSSH/QTiSSH/build/Desktop-Debug/CMakeFiles/QTiSSH_autogen.dir
