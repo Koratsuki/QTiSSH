@@ -168,12 +168,12 @@ void FileTransfer::onProcessFinished(int exitCode, QProcess::ExitStatus exitStat
     emit statusChanged(m_status);
 }
 
-void FileTransfer::onProcessError(QProcess::ProcessError error)
+void FileTransfer::onProcessError(QProcess::ProcessError processError)
 {
     m_progressTimer->stop();
     m_status = TransferStatus::Failed;
     
-    switch (error) {
+    switch (processError) {
         case QProcess::FailedToStart:
             m_errorMessage = "Failed to start SCP. Make sure 'scp' is installed and in your PATH.";
             break;
@@ -192,4 +192,3 @@ void FileTransfer::onProcessError(QProcess::ProcessError error)
     emit statusChanged(m_status);
     emit finished(false);
 }
-

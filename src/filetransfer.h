@@ -55,7 +55,7 @@ signals:
 
 private slots:
     void onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
-    void onProcessError(QProcess::ProcessError error);
+    void onProcessError(QProcess::ProcessError processError);
     void updateProgress();
 
 private:
@@ -78,4 +78,3 @@ private:
 };
 
 #endif // FILETRANSFER_H
-

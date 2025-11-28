@@ -34,6 +34,10 @@ set(PROJECT_SOURCES
         sftpconnection.cpp
         sftpbrowser.h
         sftpbrowser.cpp
+        foldermanager.h
+        foldermanager.cpp
+        servertreewidget.h
+        servertreewidget.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

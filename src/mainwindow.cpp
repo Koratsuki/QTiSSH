@@ -11,19 +11,19 @@
 #include <QAction>
 #include <QMessageBox>
 #include <QLabel>
+#include <QInputDialog>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , m_serverManager(new ServerManager(this))
+    , m_folderManager(new FolderManager(this))
 {
     ui->setupUi(this);
     setupUI();
     setupMenuBar();
     
     connect(m_serverManager, &ServerManager::serversChanged, this, &MainWindow::onServersChanged);
-    
-    updateServerList();
 }
 
 MainWindow::~MainWindow()
@@ -43,18 +43,29 @@ void MainWindow::setupUI()
     
     QSplitter *splitter = new QSplitter(Qt::Horizontal, this);
     
-    // Left panel - Server list
+    // Left panel - Server tree
     QWidget *leftPanel = new QWidget(this);
     QVBoxLayout *leftLayout = new QVBoxLayout(leftPanel);
     
-    QLabel *serverListLabel = new QLabel("Saved Servers", this);
+    QLabel *serverListLabel = new QLabel("Servers & Folders", this);
     serverListLabel->setStyleSheet("font-weight: bold; font-size: 14px; padding: 5px;");
     leftLayout->addWidget(serverListLabel);
     
-    m_serverList = new QListWidget(this);
-    m_serverList->setContextMenuPolicy(Qt::ActionsContextMenu);
-    connect(m_serverList, &QListWidget::itemDoubleClicked, this, &MainWindow::onServerListDoubleClicked);
-    leftLayout->addWidget(m_serverList);
+    m_serverTree = new ServerTreeWidget(this);
+    m_serverTree->setServerManager(m_serverManager);
+    m_serverTree->setFolderManager(m_folderManager);
+    
+    // Connect tree widget signals
+    connect(m_serverTree, &ServerTreeWidget::serverDoubleClicked, this, &MainWindow::onServerDoubleClicked);
+    connect(m_serverTree, &ServerTreeWidget::createFolderRequested, this, &MainWindow::onCreateFolderRequested);
+    connect(m_serverTree, &ServerTreeWidget::renameFolderRequested, this, &MainWindow::onRenameFolderRequested);
+    connect(m_serverTree, &ServerTreeWidget::deleteFolderRequested, this, &MainWindow::onDeleteFolderRequested);
+    connect(m_serverTree, &ServerTreeWidget::addServerRequested, this, &MainWindow::onAddServerToFolderRequested);
+    connect(m_serverTree, &ServerTreeWidget::editServerRequested, this, &MainWindow::onEditServerRequested);
+    connect(m_serverTree, &ServerTreeWidget::deleteServerRequested, this, &MainWindow::onDeleteServerRequested);
+    connect(m_serverTree, &ServerTreeWidget::moveServerRequested, this, &MainWindow::onMoveServerRequested);
+    
+    leftLayout->addWidget(m_serverTree);
     
     // Buttons
     QVBoxLayout *buttonLayout = new QVBoxLayout();
@@ -149,21 +160,7 @@ void MainWindow::setupMenuBar()
     helpMenu->addAction(aboutAction);
 }
 
-void MainWindow::updateServerList()
-{
-    m_serverList->clear();
-    
-    QList<ServerConfig> servers = m_serverManager->getAllServers();
-    for (const auto &server : servers) {
-        QString displayText = QString("%1 (%2@%3)")
-                                .arg(server.alias())
-                                .arg(server.username())
-                                .arg(server.host());
-        QListWidgetItem *item = new QListWidgetItem(displayText);
-        item->setData(Qt::UserRole, server.id());
-        m_serverList->addItem(item);
-    }
-}
+
 
 void MainWindow::onAddServerClicked()
 {
@@ -251,10 +248,9 @@ void MainWindow::onConnectSftpClicked()
     sftpBrowser->connectToServer();
 }
 
-void MainWindow::onServerListDoubleClicked(QListWidgetItem *item)
+void MainWindow::onServerDoubleClicked(const ServerConfig &server)
 {
-    Q_UNUSED(item);
-    onConnectClicked();
+    connectToServer(server);
 }
 
 void MainWindow::connectToServer(const ServerConfig &config)
@@ -322,16 +318,109 @@ void MainWindow::onTabCloseRequested(int index)
 
 void MainWindow::onServersChanged()
 {
-    updateServerList();
+    // Tree widget will automatically refresh when servers change
 }
 
 ServerConfig MainWindow::getSelectedServer()
 {
-    QListWidgetItem *item = m_serverList->currentItem();
-    if (!item) {
-        return ServerConfig();
+    return m_serverTree->getSelectedServer();
+}
+
+void MainWindow::onCreateFolderRequested(const QString &parentFolderId)
+{
+    bool ok;
+    QString folderName = QInputDialog::getText(this, tr("Create Folder"), 
+                                               tr("Folder name:"), QLineEdit::Normal, 
+                                               QString(), &ok);
+    if (ok && !folderName.isEmpty()) {
+        m_folderManager->createFolder(folderName, parentFolderId);
+    }
+}
+
+void MainWindow::onRenameFolderRequested(const QString &folderId)
+{
+    if (!m_folderManager->folderExists(folderId)) {
+        return;
     }
     
-    QString serverId = item->data(Qt::UserRole).toString();
-    return m_serverManager->getServer(serverId);
+    FolderNode folder = m_folderManager->getFolder(folderId);
+    bool ok;
+    QString newName = QInputDialog::getText(this, tr("Rename Folder"), 
+                                            tr("New folder name:"), QLineEdit::Normal, 
+                                            folder.name, &ok);
+    if (ok && !newName.isEmpty() && newName != folder.name) {
+        m_folderManager->renameFolder(folderId, newName);
+    }
+}
+
+void MainWindow::onDeleteFolderRequested(const QString &folderId)
+{
+    if (!m_folderManager->folderExists(folderId)) {
+        return;
+    }
+    
+    FolderNode folder = m_folderManager->getFolder(folderId);
+    QMessageBox::StandardButton reply = QMessageBox::question(this, 
+                                                              tr("Confirm Delete"),
+                                                              tr("Are you sure you want to delete folder '%1'?\n\nThis will also delete all subfolders.").arg(folder.name),
+                                                              QMessageBox::Yes | QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+        m_folderManager->deleteFolder(folderId);
+    }
+}
+
+void MainWindow::onAddServerToFolderRequested(const QString &folderId)
+{
+    add_Server dialog(this);
+    dialog.setFolderManager(m_folderManager);
+    dialog.setDefaultFolder(folderId);
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        ServerConfig config = dialog.getServerConfig();
+        m_serverManager->addServer(config);
+    }
+}
+
+void MainWindow::onEditServerRequested(const QString &serverId)
+{
+    ServerConfig server = m_serverManager->getServer(serverId);
+    if (!server.isValid()) {
+        return;
+    }
+    
+    add_Server dialog(this);
+    dialog.setFolderManager(m_folderManager);
+    dialog.setServerConfig(server);
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        ServerConfig updatedConfig = dialog.getServerConfig();
+        m_serverManager->updateServer(serverId, updatedConfig);
+    }
+}
+
+void MainWindow::onDeleteServerRequested(const QString &serverId)
+{
+    ServerConfig server = m_serverManager->getServer(serverId);
+    if (!server.isValid()) {
+        return;
+    }
+    
+    QMessageBox::StandardButton reply = QMessageBox::question(this, 
+                                                              tr("Confirm Delete"),
+                                                              tr("Are you sure you want to delete server '%1'?").arg(server.alias()),
+                                                              QMessageBox::Yes | QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+        m_serverManager->removeServer(serverId);
+    }
+}
+
+void MainWindow::onMoveServerRequested(const QString &serverId, const QString &newFolderId)
+{
+    ServerConfig server = m_serverManager->getServer(serverId);
+    if (!server.isValid()) {
+        return;
+    }
+    
+    server.setGroup(newFolderId);
+    m_serverManager->updateServer(serverId, server);
 }
