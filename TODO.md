@@ -1,6 +1,12 @@
 Pending tasks:
 ==
 
+#### Security & Authentication
+- SSH Agent Integration - Support for ssh-agent forwarding
+- Encrypted Password Storage - Use system keychain (Windows Credential Manager, macOS Keychain, Linux Secret Service)
+- Two-Factor Authentication - Support for TOTP/hardware keys
+- Host Key Verification - Proper SSH host key management and verification
+
 #### Advanced SSH Features
 
 - SSH Tunneling/Port Forwarding - Local/remote port forwarding with GUI management
