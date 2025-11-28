@@ -5,6 +5,8 @@
 #include <QListWidget>
 #include <QTabWidget>
 #include "servermanager.h"
+#include "foldermanager.h"
+#include "servertreewidget.h"
 #include "serverconfig.h"
 
 QT_BEGIN_NAMESPACE
@@ -28,19 +30,28 @@ private slots:
     void onDeleteServerClicked();
     void onConnectClicked();
     void onConnectSftpClicked();
-    void onServerListDoubleClicked(QListWidgetItem *item);
+    void onServerDoubleClicked(const ServerConfig &server);
     void onTabCloseRequested(int index);
     void onServersChanged();
+    
+    // Folder management slots
+    void onCreateFolderRequested(const QString &parentFolderId);
+    void onRenameFolderRequested(const QString &folderId);
+    void onDeleteFolderRequested(const QString &folderId);
+    void onAddServerToFolderRequested(const QString &folderId);
+    void onEditServerRequested(const QString &serverId);
+    void onDeleteServerRequested(const QString &serverId);
+    void onMoveServerRequested(const QString &serverId, const QString &newFolderId);
 
 private:
     Ui::MainWindow *ui;
     ServerManager *m_serverManager;
-    QListWidget *m_serverList;
+    FolderManager *m_folderManager;
+    ServerTreeWidget *m_serverTree;
     QTabWidget *m_tabWidget;
     
     void setupUI();
     void setupMenuBar();
-    void updateServerList();
     void connectToServer(const ServerConfig &config);
     ServerConfig getSelectedServer();
 };

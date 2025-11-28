@@ -1,12 +1,14 @@
 #include "add_server.h"
 #include "ui_add_server.h"
+#include "foldermanager.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QStandardPaths>
 
 add_Server::add_Server(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::add_Server)
+    ui(new Ui::add_Server),
+    m_folderManager(nullptr)
 {
     ui->setupUi(this);
     setupConnections();
@@ -166,3 +168,26 @@ void add_Server::setServerConfig(const ServerConfig &config)
     }
 }
 
+void add_Server::setFolderManager(FolderManager *folderManager)
+{
+    m_folderManager = folderManager;
+    populateFolderComboBox();
+}
+
+void add_Server::setDefaultFolder(const QString &folderId)
+{
+    m_defaultFolderId = folderId;
+    populateFolderComboBox();
+}
+
+void add_Server::populateFolderComboBox()
+{
+    // For now, we'll keep using the group line edit
+    // In a future update, we could replace this with a combo box
+    if (!m_defaultFolderId.isEmpty() && m_folderManager) {
+        FolderNode folder = m_folderManager->getFolder(m_defaultFolderId);
+        if (!folder.name.isEmpty()) {
+            ui->groupLineEdit->setText(m_defaultFolderId);
+        }
+    }
+}
