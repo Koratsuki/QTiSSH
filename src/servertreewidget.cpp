@@ -358,13 +358,12 @@ void ServerTreeWidget::addServersToFolder(const QString &folderId, QTreeWidgetIt
         return;
     }
     
-    QStringList serverIds = m_serverManager->getServerIds();
-    for (const QString &serverId : serverIds) {
-        ServerConfig server = m_serverManager->getServer(serverId);
+    QList<ServerConfig> servers = m_serverManager->getAllServers();
+    for (const ServerConfig &server : servers) {
         if (server.group() == folderId) {
             QTreeWidgetItem *serverItem = new QTreeWidgetItem();
             serverItem->setText(0, "🖥️ " + server.alias());
-            setItemData(serverItem, ItemType::Server, serverId);
+            setItemData(serverItem, ItemType::Server, server.id());
             folderItem->addChild(serverItem);
         }
     }
@@ -376,13 +375,12 @@ void ServerTreeWidget::addRootServers(QTreeWidgetItem *rootItem)
         return;
     }
     
-    QStringList serverIds = m_serverManager->getServerIds();
-    for (const QString &serverId : serverIds) {
-        ServerConfig server = m_serverManager->getServer(serverId);
+    QList<ServerConfig> servers = m_serverManager->getAllServers();
+    for (const ServerConfig &server : servers) {
         if (server.group().isEmpty()) {
             QTreeWidgetItem *serverItem = new QTreeWidgetItem();
             serverItem->setText(0, "🖥️ " + server.alias());
-            setItemData(serverItem, ItemType::Server, serverId);
+            setItemData(serverItem, ItemType::Server, server.id());
             
             if (rootItem) {
                 rootItem->addChild(serverItem);
@@ -415,7 +413,7 @@ QTreeWidgetItem *ServerTreeWidget::findFolderItem(const QString &folderId) const
 
 QTreeWidgetItem *ServerTreeWidget::findServerItem(const QString &serverId) const
 {
-    QTreeWidgetItemIterator it(this);
+    QTreeWidgetItemIterator it(const_cast<ServerTreeWidget*>(this));
     while (*it) {
         if (getItemType(*it) == ItemType::Server && getItemServerId(*it) == serverId) {
             return *it;
