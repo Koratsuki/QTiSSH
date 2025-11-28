@@ -528,9 +528,9 @@ QString TransferQueueWidget::getTransferTypeIcon(TransferType type)
 void SFTPBrowser::onLocalDirectoryChanged(const QModelIndex &index)
 {
     // Handle local directory change
-    if (m_localFileModel && index.isValid()) {
-        QString path = m_localFileModel->filePath(index);
-        if (m_localFileModel->isDir(index)) {
+    if (m_localModel && index.isValid()) {
+        QString path = m_localModel->filePath(index);
+        if (m_localModel->isDir(index)) {
             // Directory changed, could update current path display
             // For now, just accept the change
         }
@@ -541,7 +541,10 @@ void SFTPBrowser::onRefreshClicked()
 {
     // Refresh the remote directory listing
     if (m_sftpConnection && m_sftpConnection->isConnected()) {
-        QString currentPath = m_currentRemotePath.isEmpty() ? "/" : m_currentRemotePath;
+        QString currentPath = m_sftpConnection->currentRemotePath();
+        if (currentPath.isEmpty()) {
+            currentPath = "/";
+        }
         m_sftpConnection->listDirectory(currentPath);
     }
 }
@@ -551,12 +554,17 @@ void SFTPBrowser::onLocalFilesDropped(const QList<QString> &files)
     // Handle files dropped onto the local file browser
     // This could be used for drag-and-drop upload functionality
     if (m_sftpConnection && m_sftpConnection->isConnected() && !files.isEmpty()) {
+        QString currentRemotePath = m_sftpConnection->currentRemotePath();
+        if (currentRemotePath.isEmpty()) {
+            currentRemotePath = "/";
+        }
+        
         for (const QString &filePath : files) {
             QFileInfo fileInfo(filePath);
             if (fileInfo.exists()) {
                 // Queue file for upload to current remote directory
-                QString remotePath = m_currentRemotePath + "/" + fileInfo.fileName();
-                m_transferManager->uploadFile(filePath, remotePath);
+                QString remotePath = currentRemotePath + "/" + fileInfo.fileName();
+                m_transferManager->addTransfer(filePath, remotePath, TransferType::Upload, m_config.id());
             }
         }
     }
