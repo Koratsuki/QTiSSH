@@ -64,7 +64,7 @@ private slots:
     void onRefreshClicked();
 
     // Drag and drop
-    void onLocalFilesDropped(const QStringList &files);
+    void onLocalFilesDropped(const QList<QString> &files);
 
 private:
     ServerConfig m_config;
@@ -142,4 +142,3 @@ private:
 };
 
 #endif // SFTPBROWSER_H
-
