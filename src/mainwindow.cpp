@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "add_server.h"
 #include "sshterminal.h"
+#include "sftpbrowser.h"
 #include <QSplitter>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -56,21 +57,34 @@ void MainWindow::setupUI()
     leftLayout->addWidget(m_serverList);
     
     // Buttons
-    QHBoxLayout *buttonLayout = new QHBoxLayout();
+    QVBoxLayout *buttonLayout = new QVBoxLayout();
+    
+    // First row of buttons
+    QHBoxLayout *buttonRow1 = new QHBoxLayout();
     QPushButton *addButton = new QPushButton("Add", this);
     QPushButton *editButton = new QPushButton("Edit", this);
     QPushButton *deleteButton = new QPushButton("Delete", this);
-    QPushButton *connectButton = new QPushButton("Connect", this);
+    
+    buttonRow1->addWidget(addButton);
+    buttonRow1->addWidget(editButton);
+    buttonRow1->addWidget(deleteButton);
+    
+    // Second row of buttons
+    QHBoxLayout *buttonRow2 = new QHBoxLayout();
+    QPushButton *connectButton = new QPushButton("SSH Terminal", this);
+    QPushButton *connectSftpButton = new QPushButton("SFTP Browser", this);
+    
+    buttonRow2->addWidget(connectButton);
+    buttonRow2->addWidget(connectSftpButton);
+    
+    buttonLayout->addLayout(buttonRow1);
+    buttonLayout->addLayout(buttonRow2);
     
     connect(addButton, &QPushButton::clicked, this, &MainWindow::onAddServerClicked);
     connect(editButton, &QPushButton::clicked, this, &MainWindow::onEditServerClicked);
     connect(deleteButton, &QPushButton::clicked, this, &MainWindow::onDeleteServerClicked);
     connect(connectButton, &QPushButton::clicked, this, &MainWindow::onConnectClicked);
-    
-    buttonLayout->addWidget(addButton);
-    buttonLayout->addWidget(editButton);
-    buttonLayout->addWidget(deleteButton);
-    buttonLayout->addWidget(connectButton);
+    connect(connectSftpButton, &QPushButton::clicked, this, &MainWindow::onConnectSftpClicked);
     leftLayout->addLayout(buttonLayout);
     
     leftPanel->setLayout(leftLayout);
@@ -206,6 +220,37 @@ void MainWindow::onConnectClicked()
     connectToServer(server);
 }
 
+void MainWindow::onConnectSftpClicked()
+{
+    ServerConfig server = getSelectedServer();
+    if (!server.isValid()) {
+        QMessageBox::warning(this, tr("No Selection"), tr("Please select a server to connect to."));
+        return;
+    }
+    
+    // Create new SFTP browser tab
+    SFTPBrowser *sftpBrowser = new SFTPBrowser(server, this);
+    
+    QString tabTitle = QString("📁 %1 SFTP").arg(server.alias());
+    int tabIndex = m_tabWidget->addTab(sftpBrowser, tabTitle);
+    m_tabWidget->setCurrentIndex(tabIndex);
+    
+    // Update tab title on connection state change
+    connect(sftpBrowser, &SFTPBrowser::connectionStateChanged, this, [this, sftpBrowser, tabTitle](bool connected) {
+        int index = m_tabWidget->indexOf(sftpBrowser);
+        if (index != -1) {
+            if (connected) {
+                m_tabWidget->setTabText(index, "🟢 " + tabTitle);
+            } else {
+                m_tabWidget->setTabText(index, "🔴 " + tabTitle);
+            }
+        }
+    });
+    
+    // Auto-connect to server
+    sftpBrowser->connectToServer();
+}
+
 void MainWindow::onServerListDoubleClicked(QListWidgetItem *item)
 {
     Q_UNUSED(item);
@@ -246,8 +291,16 @@ void MainWindow::onTabCloseRequested(int index)
     
     QWidget *widget = m_tabWidget->widget(index);
     SSHTerminal *terminal = qobject_cast<SSHTerminal*>(widget);
+    SFTPBrowser *sftpBrowser = qobject_cast<SFTPBrowser*>(widget);
     
+    bool isConnected = false;
     if (terminal && terminal->isConnected()) {
+        isConnected = true;
+    } else if (sftpBrowser && sftpBrowser->isConnected()) {
+        isConnected = true;
+    }
+    
+    if (isConnected) {
         QMessageBox::StandardButton reply = QMessageBox::question(this,
                                                                   tr("Close Connection"),
                                                                   tr("This connection is still active. Are you sure you want to close it?"),
@@ -255,7 +308,12 @@ void MainWindow::onTabCloseRequested(int index)
         if (reply == QMessageBox::No) {
             return;
         }
-        terminal->disconnectFromServer();
+        
+        if (terminal) {
+            terminal->disconnectFromServer();
+        } else if (sftpBrowser) {
+            sftpBrowser->disconnectFromServer();
+        }
     }
     
     m_tabWidget->removeTab(index);
@@ -277,4 +335,3 @@ ServerConfig MainWindow::getSelectedServer()
     QString serverId = item->data(Qt::UserRole).toString();
     return m_serverManager->getServer(serverId);
 }
-

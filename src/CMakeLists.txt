@@ -26,6 +26,14 @@ set(PROJECT_SOURCES
         servermanager.cpp
         sshterminal.h
         sshterminal.cpp
+        filetransfer.h
+        filetransfer.cpp
+        filetransfermanager.h
+        filetransfermanager.cpp
+        sftpconnection.h
+        sftpconnection.cpp
+        sftpbrowser.h
+        sftpbrowser.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
