@@ -14,6 +14,9 @@ A modern, user-friendly SSH connection manager built with Qt. Manage multiple SS
 🎨 **Clean Interface** - Modern Qt-based UI with intuitive controls  
 📋 **Server Organization** - Group servers and add tags for easy management  
 🚀 **Quick Connect** - Double-click to connect instantly  
+📁 **SFTP File Browser** - Built-in dual-pane file manager with drag-and-drop  
+⬆️ **File Transfers** - Upload and download files with progress tracking  
+🔄 **Transfer Queue** - Manage multiple file transfers with queue system  
 
 ## Screenshots
 
@@ -28,7 +31,7 @@ Easy-to-use dialog for adding new servers with all necessary connection paramete
 - Qt 5.12+ or Qt 6.x
 - CMake 3.16+
 - C++17 compatible compiler
-- OpenSSH client (`ssh` command must be available in PATH)
+- OpenSSH client (`ssh` and `sftp` commands must be available in PATH)
 
 ## Building from Source
 
@@ -80,15 +83,29 @@ Or use Qt Creator:
 ### Connecting to a Server
 
 - **Double-click** a server in the list, or
-- Select a server and click **Connect**
+- Select a server and click **SSH Terminal** for a terminal session
+- Select a server and click **SFTP Browser** for file management
 
-A new tab will open with the SSH terminal session.
+A new tab will open with either the SSH terminal or SFTP file browser.
 
 ### Managing Servers
 
 - **Edit**: Select a server and click **Edit** to modify its configuration
 - **Delete**: Select a server and click **Delete** to remove it
 - **Multiple Connections**: Open multiple tabs to the same or different servers
+
+### Using the SFTP Browser
+
+1. **Connect**: Click "SFTP Browser" to open a file management tab
+2. **Navigate**: 
+   - **Local files** (left pane): Browse your local file system
+   - **Remote files** (right pane): Browse server files after connecting
+3. **File Operations**:
+   - **Upload**: Select local files and click "⬆️ Upload" or drag files to remote pane
+   - **Download**: Select remote files and click "⬇️ Download"
+   - **Delete**: Select remote files and click "🗑️ Delete"
+   - **New Folder**: Click "📁 New Folder" to create directories
+4. **Transfer Queue**: Monitor file transfers in the bottom panel with progress bars
 
 ### Closing Connections
 
@@ -149,13 +166,17 @@ If a connection hangs:
 ```
 QTiSSH/
 ├── src/
-│   ├── main.cpp              # Application entry point
-│   ├── mainwindow.h/cpp/ui   # Main window with server list and tabs
-│   ├── add_server.h/cpp/ui   # Add/Edit server dialog
-│   ├── serverconfig.h/cpp    # Server configuration data model
-│   ├── servermanager.h/cpp   # Server storage and management
-│   ├── sshterminal.h/cpp     # SSH terminal widget
-│   └── CMakeLists.txt        # Build configuration
+│   ├── main.cpp                    # Application entry point
+│   ├── mainwindow.h/cpp/ui         # Main window with server list and tabs
+│   ├── add_server.h/cpp/ui         # Add/Edit server dialog
+│   ├── serverconfig.h/cpp          # Server configuration data model
+│   ├── servermanager.h/cpp         # Server storage and management
+│   ├── sshterminal.h/cpp           # SSH terminal widget
+│   ├── sftpbrowser.h/cpp           # SFTP file browser widget
+│   ├── sftpconnection.h/cpp        # SFTP connection handler
+│   ├── filetransfer.h/cpp          # Individual file transfer
+│   ├── filetransfermanager.h/cpp   # File transfer queue management
+│   └── CMakeLists.txt              # Build configuration
 └── README.md
 ```
 
@@ -163,13 +184,15 @@ QTiSSH/
 
 Some ideas for future enhancements:
 - SSH tunneling/port forwarding
-- SFTP file browser
+- Remote file editing with auto-sync
 - Connection profiles with custom SSH options
 - Import/export server configurations
 - Dark/light theme toggle
 - Terminal color scheme customization
 - Command history
 - Connection logs
+- SCP quick actions (right-click upload/download)
+- Encrypted password storage using system keychain
 
 ## Contributing
 
@@ -187,4 +210,3 @@ This project is open source. See LICENSE file for details.
 ---
 
 **Note**: This is a work in progress. If you encounter any issues or have suggestions, please open an issue on GitHub.
-

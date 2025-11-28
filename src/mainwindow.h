@@ -12,6 +12,7 @@ namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
 class SSHTerminal;
+class SFTPBrowser;
 
 class MainWindow : public QMainWindow
 {
@@ -26,6 +27,7 @@ private slots:
     void onEditServerClicked();
     void onDeleteServerClicked();
     void onConnectClicked();
+    void onConnectSftpClicked();
     void onServerListDoubleClicked(QListWidgetItem *item);
     void onTabCloseRequested(int index);
     void onServersChanged();
