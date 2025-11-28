@@ -20,6 +20,7 @@ Pending tasks:
 
 #### UI/UX Improvements
 
+- Add a tree view where you can create folders and within them create servers to have better organization in the left panel
 - Dark/Light Themes - Theme switching with system preference detection
 - Custom Terminal Colors - Configurable color schemes
 - Font Customization - Terminal font size and family selection
