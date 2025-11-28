@@ -150,7 +150,7 @@ void ServerTreeWidget::mouseDoubleClickEvent(QMouseEvent *event)
 
 void ServerTreeWidget::dropEvent(QDropEvent *event)
 {
-    QTreeWidgetItem *targetItem = itemAt(event->pos());
+    QTreeWidgetItem *targetItem = itemAt(event->position().toPoint());
     QTreeWidgetItem *sourceItem = currentItem();
     
     if (!sourceItem) {
@@ -197,7 +197,7 @@ void ServerTreeWidget::dragEnterEvent(QDragEnterEvent *event)
 
 void ServerTreeWidget::dragMoveEvent(QDragMoveEvent *event)
 {
-    QTreeWidgetItem *item = itemAt(event->pos());
+    QTreeWidgetItem *item = itemAt(event->position().toPoint());
     if (item) {
         event->acceptProposedAction();
     } else {

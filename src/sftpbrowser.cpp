@@ -524,4 +524,42 @@ QString TransferQueueWidget::getTransferTypeIcon(TransferType type)
     return type == TransferType::Upload ? "⬆️" : "⬇️";
 }
 
+// Missing SFTPBrowser method implementations
+void SFTPBrowser::onLocalDirectoryChanged(const QModelIndex &index)
+{
+    // Handle local directory change
+    if (m_localFileModel && index.isValid()) {
+        QString path = m_localFileModel->filePath(index);
+        if (m_localFileModel->isDir(index)) {
+            // Directory changed, could update current path display
+            // For now, just accept the change
+        }
+    }
+}
+
+void SFTPBrowser::onRefreshClicked()
+{
+    // Refresh the remote directory listing
+    if (m_sftpConnection && m_sftpConnection->isConnected()) {
+        QString currentPath = m_currentRemotePath.isEmpty() ? "/" : m_currentRemotePath;
+        m_sftpConnection->listDirectory(currentPath);
+    }
+}
+
+void SFTPBrowser::onLocalFilesDropped(const QList<QString> &files)
+{
+    // Handle files dropped onto the local file browser
+    // This could be used for drag-and-drop upload functionality
+    if (m_sftpConnection && m_sftpConnection->isConnected() && !files.isEmpty()) {
+        for (const QString &filePath : files) {
+            QFileInfo fileInfo(filePath);
+            if (fileInfo.exists()) {
+                // Queue file for upload to current remote directory
+                QString remotePath = m_currentRemotePath + "/" + fileInfo.fileName();
+                m_transferManager->uploadFile(filePath, remotePath);
+            }
+        }
+    }
+}
+
 #include "sftpbrowser.moc"
