@@ -21,13 +21,18 @@ CONFIG += c++17 release
 SOURCES += \
     src/main.cpp \
     src/mainwindow.cpp \
-    src/add_server.cpp
+    src/add_server.cpp \
+    src/serverconfig.cpp \
+    src/servermanager.cpp \
+    src/sshterminal.cpp
 
 HEADERS += \
     src/mainwindow.h \
-    src/add_server.h
+    src/add_server.h \
+    src/serverconfig.h \
+    src/servermanager.h \
+    src/sshterminal.h
 
 FORMS += \
     src/mainwindow.ui \
     src/add_server.ui
-
