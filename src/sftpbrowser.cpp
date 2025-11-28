@@ -7,6 +7,7 @@
 #include <QDropEvent>
 #include <QUrl>
 #include <QHeaderView>
+#include <QFrame>
 
 SFTPBrowser::SFTPBrowser(const ServerConfig &config, QWidget *parent)
     : QWidget(parent)
@@ -78,13 +79,34 @@ void SFTPBrowser::setupToolbar()
     m_refreshButton->setEnabled(false);
     
     toolbarLayout->addWidget(m_connectButton);
-    toolbarLayout->addSeparator();
+    
+    // Add separator
+    QFrame *separator1 = new QFrame();
+    separator1->setFrameShape(QFrame::VLine);
+    separator1->setFrameShadow(QFrame::Sunken);
+    separator1->setMaximumWidth(2);
+    toolbarLayout->addWidget(separator1);
+    
     toolbarLayout->addWidget(m_uploadButton);
     toolbarLayout->addWidget(m_downloadButton);
-    toolbarLayout->addSeparator();
+    
+    // Add separator
+    QFrame *separator2 = new QFrame();
+    separator2->setFrameShape(QFrame::VLine);
+    separator2->setFrameShadow(QFrame::Sunken);
+    separator2->setMaximumWidth(2);
+    toolbarLayout->addWidget(separator2);
+    
     toolbarLayout->addWidget(m_deleteButton);
     toolbarLayout->addWidget(m_newFolderButton);
-    toolbarLayout->addSeparator();
+    
+    // Add separator
+    QFrame *separator3 = new QFrame();
+    separator3->setFrameShape(QFrame::VLine);
+    separator3->setFrameShadow(QFrame::Sunken);
+    separator3->setMaximumWidth(2);
+    toolbarLayout->addWidget(separator3);
+    
     toolbarLayout->addWidget(m_refreshButton);
     toolbarLayout->addStretch();
     
@@ -503,4 +525,3 @@ QString TransferQueueWidget::getTransferTypeIcon(TransferType type)
 }
 
 #include "sftpbrowser.moc"
-
