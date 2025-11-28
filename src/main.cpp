@@ -8,7 +8,7 @@
 int main(int argc, char *argv[])
 {
     QCoreApplication::setOrganizationName("qtissh");
-    QCoreApplication::setOrganizationDomain("qtissh.cu");
+    QCoreApplication::setOrganizationDomain("qtissh.tld");
     QCoreApplication::setApplicationName("QTiSSH");
 
     QApplication a(argc, argv);
