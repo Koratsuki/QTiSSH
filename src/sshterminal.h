@@ -1,0 +1,50 @@
+#ifndef SSHTERMINAL_H
+#define SSHTERMINAL_H
+
+#include <QWidget>
+#include <QProcess>
+#include <QPlainTextEdit>
+#include <QVBoxLayout>
+#include <QLineEdit>
+#include "serverconfig.h"
+
+class SSHTerminal : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit SSHTerminal(const ServerConfig &config, QWidget *parent = nullptr);
+    ~SSHTerminal();
+
+    void connectToServer();
+    void disconnectFromServer();
+    bool isConnected() const { return m_connected; }
+    ServerConfig getServerConfig() const { return m_config; }
+
+signals:
+    void connectionStateChanged(bool connected);
+    void errorOccurred(const QString &error);
+
+private slots:
+    void onReadyReadStandardOutput();
+    void onReadyReadStandardError();
+    void onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
+    void onProcessError(QProcess::ProcessError error);
+    void onInputReturnPressed();
+
+private:
+    void setupUI();
+    void sendCommand(const QString &command);
+    QString buildSSHCommand();
+
+    ServerConfig m_config;
+    QProcess *m_process;
+    QPlainTextEdit *m_terminal;
+    QLineEdit *m_input;
+    bool m_connected;
+    bool m_waitingForPassword;
+    QString m_outputBuffer;
+};
+
+#endif // SSHTERMINAL_H
+

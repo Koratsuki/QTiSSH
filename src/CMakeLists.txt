@@ -17,13 +17,21 @@ set(PROJECT_SOURCES
         mainwindow.cpp
         mainwindow.h
         mainwindow.ui
+        add_server.h
+        add_server.cpp
+        add_server.ui
+        serverconfig.h
+        serverconfig.cpp
+        servermanager.h
+        servermanager.cpp
+        sshterminal.h
+        sshterminal.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(QTiSSH
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        add_server.h add_server.cpp add_server.ui
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET QTiSSH APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
