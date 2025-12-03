@@ -38,7 +38,6 @@
       <font>
        <family>Monospace</family>
        <pointsize>10</pointsize>
-       <stylehint>TypeWriter</stylehint>
       </font>
      </property>
      <property name="styleSheet">
@@ -52,7 +51,6 @@
       <font>
        <family>Monospace</family>
        <pointsize>10</pointsize>
-       <stylehint>TypeWriter</stylehint>
       </font>
      </property>
      <property name="styleSheet">
