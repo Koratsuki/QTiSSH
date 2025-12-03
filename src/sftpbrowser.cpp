@@ -1,4 +1,5 @@
 #include "sftpbrowser.h"
+#include "ui_sftpbrowser.h"
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QFileDialog>
@@ -8,14 +9,38 @@
 #include <QUrl>
 #include <QHeaderView>
 #include <QFrame>
+#include <QDir>
 
 SFTPBrowser::SFTPBrowser(const ServerConfig &config, QWidget *parent)
     : QWidget(parent)
+    , ui(new Ui::SFTPBrowser)
     , m_config(config)
     , m_sftpConnection(new SFTPConnection(config, this))
     , m_transferManager(new FileTransferManager(this))
 {
-    setupUI();
+    ui->setupUi(this);
+    
+    // Setup local file browser model
+    m_localModel = new QFileSystemModel(this);
+    m_localModel->setRootPath(QDir::homePath());
+    ui->localTreeView->setModel(m_localModel);
+    ui->localTreeView->setRootIndex(m_localModel->index(QDir::homePath()));
+    
+    // Hide size, type, and date columns for cleaner look
+    ui->localTreeView->hideColumn(1);
+    ui->localTreeView->hideColumn(2);
+    ui->localTreeView->hideColumn(3);
+    
+    // Create and add transfer queue widget to the container
+    TransferQueueWidget *transferQueue = new TransferQueueWidget(m_transferManager, this);
+    ui->transferQueueLayout->addWidget(transferQueue);
+    
+    // Set splitter stretch factors
+    ui->mainSplitter->setStretchFactor(0, 3);  // Browser area
+    ui->mainSplitter->setStretchFactor(1, 1);  // Transfer queue
+    ui->browserSplitter->setStretchFactor(0, 1);  // Local browser
+    ui->browserSplitter->setStretchFactor(1, 1);  // Remote browser
+    
     setupConnections();
     setupDragDrop();
 }
@@ -25,144 +50,7 @@ SFTPBrowser::~SFTPBrowser()
     if (isConnected()) {
         disconnectFromServer();
     }
-}
-
-void SFTPBrowser::setupUI()
-{
-    QVBoxLayout *mainLayout = new QVBoxLayout(this);
-    mainLayout->setContentsMargins(0, 0, 0, 0);
-    
-    // Setup toolbar
-    setupToolbar();
-    mainLayout->addWidget(m_toolbar);
-    
-    // Main splitter (horizontal: browsers | transfer queue)
-    m_mainSplitter = new QSplitter(Qt::Vertical, this);
-    
-    // Browser splitter (horizontal: local | remote)
-    m_browserSplitter = new QSplitter(Qt::Horizontal, this);
-    
-    setupLocalBrowser();
-    setupRemoteBrowser();
-    setupTransferQueue();
-    
-    m_browserSplitter->addWidget(m_localPanel);
-    m_browserSplitter->addWidget(m_remotePanel);
-    m_browserSplitter->setStretchFactor(0, 1);
-    m_browserSplitter->setStretchFactor(1, 1);
-    
-    m_mainSplitter->addWidget(m_browserSplitter);
-    m_mainSplitter->addWidget(m_transferQueue);
-    m_mainSplitter->setStretchFactor(0, 3);
-    m_mainSplitter->setStretchFactor(1, 1);
-    
-    mainLayout->addWidget(m_mainSplitter);
-    setLayout(mainLayout);
-}
-
-void SFTPBrowser::setupToolbar()
-{
-    m_toolbar = new QWidget(this);
-    QHBoxLayout *toolbarLayout = new QHBoxLayout(m_toolbar);
-    
-    m_connectButton = new QPushButton("Connect", this);
-    m_uploadButton = new QPushButton("⬆️ Upload", this);
-    m_downloadButton = new QPushButton("⬇️ Download", this);
-    m_deleteButton = new QPushButton("🗑️ Delete", this);
-    m_newFolderButton = new QPushButton("📁 New Folder", this);
-    m_refreshButton = new QPushButton("🔄 Refresh", this);
-    
-    m_uploadButton->setEnabled(false);
-    m_downloadButton->setEnabled(false);
-    m_deleteButton->setEnabled(false);
-    m_newFolderButton->setEnabled(false);
-    m_refreshButton->setEnabled(false);
-    
-    toolbarLayout->addWidget(m_connectButton);
-    
-    // Add separator
-    QFrame *separator1 = new QFrame();
-    separator1->setFrameShape(QFrame::VLine);
-    separator1->setFrameShadow(QFrame::Sunken);
-    separator1->setMaximumWidth(2);
-    toolbarLayout->addWidget(separator1);
-    
-    toolbarLayout->addWidget(m_uploadButton);
-    toolbarLayout->addWidget(m_downloadButton);
-    
-    // Add separator
-    QFrame *separator2 = new QFrame();
-    separator2->setFrameShape(QFrame::VLine);
-    separator2->setFrameShadow(QFrame::Sunken);
-    separator2->setMaximumWidth(2);
-    toolbarLayout->addWidget(separator2);
-    
-    toolbarLayout->addWidget(m_deleteButton);
-    toolbarLayout->addWidget(m_newFolderButton);
-    
-    // Add separator
-    QFrame *separator3 = new QFrame();
-    separator3->setFrameShape(QFrame::VLine);
-    separator3->setFrameShadow(QFrame::Sunken);
-    separator3->setMaximumWidth(2);
-    toolbarLayout->addWidget(separator3);
-    
-    toolbarLayout->addWidget(m_refreshButton);
-    toolbarLayout->addStretch();
-    
-    m_toolbar->setLayout(toolbarLayout);
-}
-
-void SFTPBrowser::setupLocalBrowser()
-{
-    m_localPanel = new QWidget(this);
-    QVBoxLayout *localLayout = new QVBoxLayout(m_localPanel);
-    
-    m_localPathLabel = new QLabel("Local Files", this);
-    m_localPathLabel->setStyleSheet("font-weight: bold; padding: 5px;");
-    localLayout->addWidget(m_localPathLabel);
-    
-    m_localTreeView = new QTreeView(this);
-    m_localModel = new QFileSystemModel(this);
-    m_localModel->setRootPath(QDir::homePath());
-    m_localTreeView->setModel(m_localModel);
-    m_localTreeView->setRootIndex(m_localModel->index(QDir::homePath()));
-    
-    // Hide size, type, and date columns for cleaner look
-    m_localTreeView->hideColumn(1);
-    m_localTreeView->hideColumn(2);
-    m_localTreeView->hideColumn(3);
-    
-    m_localTreeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-    m_localTreeView->setDragEnabled(true);
-    m_localTreeView->setDragDropMode(QAbstractItemView::DragOnly);
-    
-    localLayout->addWidget(m_localTreeView);
-    m_localPanel->setLayout(localLayout);
-}
-
-void SFTPBrowser::setupRemoteBrowser()
-{
-    m_remotePanel = new QWidget(this);
-    QVBoxLayout *remoteLayout = new QVBoxLayout(m_remotePanel);
-    
-    m_remotePathLabel = new QLabel("Remote Files - Not Connected", this);
-    m_remotePathLabel->setStyleSheet("font-weight: bold; padding: 5px;");
-    remoteLayout->addWidget(m_remotePathLabel);
-    
-    m_remoteListWidget = new QListWidget(this);
-    m_remoteListWidget->setEnabled(false);
-    m_remoteListWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-    m_remoteListWidget->setAcceptDrops(true);
-    m_remoteListWidget->setDropIndicatorShown(true);
-    
-    remoteLayout->addWidget(m_remoteListWidget);
-    m_remotePanel->setLayout(remoteLayout);
-}
-
-void SFTPBrowser::setupTransferQueue()
-{
-    m_transferQueue = new TransferQueueWidget(m_transferManager, this);
+    delete ui;
 }
 
 void SFTPBrowser::setupConnections()
@@ -175,26 +63,26 @@ void SFTPBrowser::setupConnections()
     connect(m_sftpConnection, &SFTPConnection::directoryChanged, this, &SFTPBrowser::onSftpDirectoryChanged);
     
     // UI signals
-    connect(m_connectButton, &QPushButton::clicked, this, &SFTPBrowser::connectToServer);
-    connect(m_uploadButton, &QPushButton::clicked, this, &SFTPBrowser::onUploadClicked);
-    connect(m_downloadButton, &QPushButton::clicked, this, &SFTPBrowser::onDownloadClicked);
-    connect(m_deleteButton, &QPushButton::clicked, this, &SFTPBrowser::onDeleteRemoteClicked);
-    connect(m_newFolderButton, &QPushButton::clicked, this, &SFTPBrowser::onCreateRemoteFolderClicked);
-    connect(m_refreshButton, &QPushButton::clicked, this, &SFTPBrowser::refreshRemoteDirectory);
+    connect(ui->connectButton, &QPushButton::clicked, this, &SFTPBrowser::connectToServer);
+    connect(ui->uploadButton, &QPushButton::clicked, this, &SFTPBrowser::onUploadClicked);
+    connect(ui->downloadButton, &QPushButton::clicked, this, &SFTPBrowser::onDownloadClicked);
+    connect(ui->deleteButton, &QPushButton::clicked, this, &SFTPBrowser::onDeleteRemoteClicked);
+    connect(ui->newFolderButton, &QPushButton::clicked, this, &SFTPBrowser::onCreateRemoteFolderClicked);
+    connect(ui->refreshButton, &QPushButton::clicked, this, &SFTPBrowser::refreshRemoteDirectory);
     
     // Local browser signals
-    connect(m_localTreeView, &QTreeView::doubleClicked, this, &SFTPBrowser::onLocalFileDoubleClicked);
+    connect(ui->localTreeView, &QTreeView::doubleClicked, this, &SFTPBrowser::onLocalFileDoubleClicked);
     
     // Remote browser signals
-    connect(m_remoteListWidget, &QListWidget::itemDoubleClicked, this, &SFTPBrowser::onRemoteItemDoubleClicked);
-    connect(m_remoteListWidget, &QListWidget::itemSelectionChanged, this, &SFTPBrowser::onRemoteItemSelectionChanged);
-    connect(m_remoteListWidget, &QListWidget::customContextMenuRequested, this, &SFTPBrowser::showRemoteContextMenu);
+    connect(ui->remoteListWidget, &QListWidget::itemDoubleClicked, this, &SFTPBrowser::onRemoteItemDoubleClicked);
+    connect(ui->remoteListWidget, &QListWidget::itemSelectionChanged, this, &SFTPBrowser::onRemoteItemSelectionChanged);
+    connect(ui->remoteListWidget, &QListWidget::customContextMenuRequested, this, &SFTPBrowser::showRemoteContextMenu);
 }
 
 void SFTPBrowser::setupDragDrop()
 {
     setAcceptDrops(true);
-    m_remoteListWidget->setAcceptDrops(true);
+    ui->remoteListWidget->setAcceptDrops(true);
 }
 
 bool SFTPBrowser::isConnected() const
@@ -207,8 +95,8 @@ void SFTPBrowser::connectToServer()
     if (isConnected()) {
         disconnectFromServer();
     } else {
-        m_connectButton->setText("Connecting...");
-        m_connectButton->setEnabled(false);
+        ui->connectButton->setText("Connecting...");
+        ui->connectButton->setEnabled(false);
         m_sftpConnection->connectToServer();
     }
 }
@@ -227,14 +115,14 @@ void SFTPBrowser::refreshRemoteDirectory()
 
 void SFTPBrowser::onSftpConnected()
 {
-    m_connectButton->setText("Disconnect");
-    m_connectButton->setEnabled(true);
-    m_uploadButton->setEnabled(true);
-    m_downloadButton->setEnabled(true);
-    m_deleteButton->setEnabled(true);
-    m_newFolderButton->setEnabled(true);
-    m_refreshButton->setEnabled(true);
-    m_remoteListWidget->setEnabled(true);
+    ui->connectButton->setText("Disconnect");
+    ui->connectButton->setEnabled(true);
+    ui->uploadButton->setEnabled(true);
+    ui->downloadButton->setEnabled(true);
+    ui->deleteButton->setEnabled(true);
+    ui->newFolderButton->setEnabled(true);
+    ui->refreshButton->setEnabled(true);
+    ui->remoteListWidget->setEnabled(true);
     
     updateConnectionState();
     emit connectionStateChanged(true);
@@ -242,15 +130,15 @@ void SFTPBrowser::onSftpConnected()
 
 void SFTPBrowser::onSftpDisconnected()
 {
-    m_connectButton->setText("Connect");
-    m_connectButton->setEnabled(true);
-    m_uploadButton->setEnabled(false);
-    m_downloadButton->setEnabled(false);
-    m_deleteButton->setEnabled(false);
-    m_newFolderButton->setEnabled(false);
-    m_refreshButton->setEnabled(false);
-    m_remoteListWidget->setEnabled(false);
-    m_remoteListWidget->clear();
+    ui->connectButton->setText("Connect");
+    ui->connectButton->setEnabled(true);
+    ui->uploadButton->setEnabled(false);
+    ui->downloadButton->setEnabled(false);
+    ui->deleteButton->setEnabled(false);
+    ui->newFolderButton->setEnabled(false);
+    ui->refreshButton->setEnabled(false);
+    ui->remoteListWidget->setEnabled(false);
+    ui->remoteListWidget->clear();
     
     updateConnectionState();
     emit connectionStateChanged(false);
@@ -270,12 +158,12 @@ void SFTPBrowser::onSftpDirectoryListed(const QList<RemoteFileInfo> &files)
 
 void SFTPBrowser::onSftpDirectoryChanged(const QString &path)
 {
-    m_remotePathLabel->setText(QString("Remote Files - %1").arg(path));
+    ui->remotePathLabel->setText(QString("Remote Files - %1").arg(path));
 }
 
 void SFTPBrowser::updateRemoteFileList(const QList<RemoteFileInfo> &files)
 {
-    m_remoteListWidget->clear();
+    ui->remoteListWidget->clear();
     
     for (const RemoteFileInfo &fileInfo : files) {
         QListWidgetItem *item = new QListWidgetItem();
@@ -292,7 +180,7 @@ void SFTPBrowser::updateRemoteFileList(const QList<RemoteFileInfo> &files)
         item->setData(Qt::UserRole + 1, fileInfo.isDirectory);
         item->setData(Qt::UserRole + 2, fileInfo.name);
         
-        m_remoteListWidget->addItem(item);
+        ui->remoteListWidget->addItem(item);
     }
 }
 
@@ -303,7 +191,7 @@ void SFTPBrowser::updateConnectionState()
         "Not Connected";
     
     if (!isConnected()) {
-        m_remotePathLabel->setText("Remote Files - " + status);
+        ui->remotePathLabel->setText("Remote Files - " + status);
     }
 }
 
@@ -311,7 +199,7 @@ void SFTPBrowser::onLocalFileDoubleClicked(const QModelIndex &index)
 {
     if (m_localModel->isDir(index)) {
         // Navigate to directory
-        m_localTreeView->setRootIndex(index);
+        ui->localTreeView->setRootIndex(index);
         m_localPathLabel->setText("Local Files - " + m_localModel->filePath(index));
     }
 }
@@ -331,14 +219,14 @@ void SFTPBrowser::onRemoteItemDoubleClicked(QListWidgetItem *item)
 void SFTPBrowser::onRemoteItemSelectionChanged()
 {
     // Enable/disable buttons based on selection
-    bool hasSelection = !m_remoteListWidget->selectedItems().isEmpty();
-    m_downloadButton->setEnabled(hasSelection && isConnected());
-    m_deleteButton->setEnabled(hasSelection && isConnected());
+    bool hasSelection = !ui->remoteListWidget->selectedItems().isEmpty();
+    ui->downloadButton->setEnabled(hasSelection && isConnected());
+    ui->deleteButton->setEnabled(hasSelection && isConnected());
 }
 
 void SFTPBrowser::showRemoteContextMenu(const QPoint &pos)
 {
-    QListWidgetItem *item = m_remoteListWidget->itemAt(pos);
+    QListWidgetItem *item = ui->remoteListWidget->itemAt(pos);
     if (!item || !isConnected()) return;
     
     QMenu contextMenu(this);
@@ -347,7 +235,7 @@ void SFTPBrowser::showRemoteContextMenu(const QPoint &pos)
     contextMenu.addSeparator();
     contextMenu.addAction("Refresh", this, &SFTPBrowser::refreshRemoteDirectory);
     
-    contextMenu.exec(m_remoteListWidget->mapToGlobal(pos));
+    contextMenu.exec(ui->remoteListWidget->mapToGlobal(pos));
 }
 
 void SFTPBrowser::onUploadClicked()
@@ -370,7 +258,7 @@ void SFTPBrowser::onDownloadClicked()
 {
     if (!isConnected()) return;
     
-    QList<QListWidgetItem*> selectedItems = m_remoteListWidget->selectedItems();
+    QList<QListWidgetItem*> selectedItems = ui->remoteListWidget->selectedItems();
     if (selectedItems.isEmpty()) return;
     
     QString localDir = QFileDialog::getExistingDirectory(this, "Select Download Directory");
@@ -389,7 +277,7 @@ void SFTPBrowser::onDeleteRemoteClicked()
 {
     if (!isConnected()) return;
     
-    QList<QListWidgetItem*> selectedItems = m_remoteListWidget->selectedItems();
+    QList<QListWidgetItem*> selectedItems = ui->remoteListWidget->selectedItems();
     if (selectedItems.isEmpty()) return;
     
     QStringList fileNames;

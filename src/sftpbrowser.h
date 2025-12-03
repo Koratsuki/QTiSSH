@@ -2,14 +2,6 @@
 #define SFTPBROWSER_H
 
 #include <QWidget>
-#include <QSplitter>
-#include <QTreeView>
-#include <QListWidget>
-#include <QProgressBar>
-#include <QLabel>
-#include <QPushButton>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
 #include <QFileSystemModel>
 #include <QStandardItemModel>
 #include <QMenu>
@@ -17,7 +9,14 @@
 #include "sftpconnection.h"
 #include "filetransfermanager.h"
 
+namespace Ui {
+class SFTPBrowser;
+}
+
 class TransferQueueWidget;
+class QTreeView;
+class QListWidget;
+class QLabel;
 
 class SFTPBrowser : public QWidget
 {
@@ -67,43 +66,15 @@ private slots:
     void onLocalFilesDropped(const QList<QString> &files);
 
 private:
+    Ui::SFTPBrowser *ui;
     ServerConfig m_config;
     SFTPConnection *m_sftpConnection;
     FileTransferManager *m_transferManager;
 
-    // UI Components
-    QSplitter *m_mainSplitter;
-    QSplitter *m_browserSplitter;
-    
-    // Local file browser
-    QWidget *m_localPanel;
-    QTreeView *m_localTreeView;
+    // Models
     QFileSystemModel *m_localModel;
-    QLabel *m_localPathLabel;
-    
-    // Remote file browser
-    QWidget *m_remotePanel;
-    QListWidget *m_remoteListWidget;
     QStandardItemModel *m_remoteModel;
-    QLabel *m_remotePathLabel;
-    QPushButton *m_connectButton;
-    QPushButton *m_refreshButton;
     
-    // Transfer queue
-    TransferQueueWidget *m_transferQueue;
-    
-    // Toolbar
-    QWidget *m_toolbar;
-    QPushButton *m_uploadButton;
-    QPushButton *m_downloadButton;
-    QPushButton *m_deleteButton;
-    QPushButton *m_newFolderButton;
-    
-    void setupUI();
-    void setupLocalBrowser();
-    void setupRemoteBrowser();
-    void setupTransferQueue();
-    void setupToolbar();
     void setupConnections();
     
     void updateRemoteFileList(const QList<RemoteFileInfo> &files);

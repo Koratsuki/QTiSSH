@@ -1,23 +1,25 @@
 #include "sshterminal.h"
+#include "ui_sshterminal.h"
 #include <QFont>
 #include <QScrollBar>
 #include <QTextCursor>
 
 SSHTerminal::SSHTerminal(const ServerConfig &config, QWidget *parent)
     : QWidget(parent)
+    , ui(new Ui::SSHTerminal)
     , m_config(config)
     , m_process(new QProcess(this))
     , m_connected(false)
     , m_waitingForPassword(false)
 {
-    setupUI();
+    ui->setupUi(this);
     
     connect(m_process, &QProcess::readyReadStandardOutput, this, &SSHTerminal::onReadyReadStandardOutput);
     connect(m_process, &QProcess::readyReadStandardError, this, &SSHTerminal::onReadyReadStandardError);
     connect(m_process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, &SSHTerminal::onProcessFinished);
     connect(m_process, &QProcess::errorOccurred, this, &SSHTerminal::onProcessError);
-    connect(m_input, &QLineEdit::returnPressed, this, &SSHTerminal::onInputReturnPressed);
+    connect(ui->input, &QLineEdit::returnPressed, this, &SSHTerminal::onInputReturnPressed);
 }
 
 SSHTerminal::~SSHTerminal()
@@ -29,32 +31,7 @@ SSHTerminal::~SSHTerminal()
             m_process->kill();
         }
     }
-}
-
-void SSHTerminal::setupUI()
-{
-    QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(0);
-
-    // Terminal output
-    m_terminal = new QPlainTextEdit(this);
-    m_terminal->setReadOnly(true);
-    QFont font("Monospace", 10);
-    font.setStyleHint(QFont::TypeWriter);
-    m_terminal->setFont(font);
-    m_terminal->setStyleSheet("QPlainTextEdit { background-color: #000; color: #0f0; }");
-
-    // Input line
-    m_input = new QLineEdit(this);
-    m_input->setFont(font);
-    m_input->setStyleSheet("QLineEdit { background-color: #000; color: #0f0; border: none; }");
-    m_input->setPlaceholderText("Enter command...");
-
-    layout->addWidget(m_terminal);
-    layout->addWidget(m_input);
-
-    setLayout(layout);
+    delete ui;
 }
 
 void SSHTerminal::connectToServer()
@@ -64,7 +41,7 @@ void SSHTerminal::connectToServer()
     }
 
     QString sshCommand = buildSSHCommand();
-    m_terminal->appendPlainText(QString("Connecting to %1@%2:%3...")
+    ui->terminal->appendPlainText(QString("Connecting to %1@%2:%3...")
                                 .arg(m_config.username())
                                 .arg(m_config.host())
                                 .arg(m_config.port()));
@@ -144,10 +121,10 @@ void SSHTerminal::onReadyReadStandardOutput()
         emit connectionStateChanged(true);
     }
     
-    m_terminal->appendPlainText(output);
+    ui->terminal->appendPlainText(output);
     
     // Auto-scroll to bottom
-    QScrollBar *scrollBar = m_terminal->verticalScrollBar();
+    QScrollBar *scrollBar = ui->terminal->verticalScrollBar();
     scrollBar->setValue(scrollBar->maximum());
 }
 
@@ -158,13 +135,13 @@ void SSHTerminal::onReadyReadStandardError()
     
     // Some SSH output goes to stderr that's not actually errors
     if (error.contains("password:", Qt::CaseInsensitive)) {
-        m_terminal->appendPlainText(error);
+        ui->terminal->appendPlainText(error);
         if (m_waitingForPassword && !m_config.password().isEmpty()) {
             m_waitingForPassword = false;
             m_process->write(m_config.password().toUtf8() + "\n");
         }
     } else {
-        m_terminal->appendPlainText("ERROR: " + error);
+        ui->terminal->appendPlainText("ERROR: " + error);
     }
 }
 
@@ -174,9 +151,9 @@ void SSHTerminal::onProcessFinished(int exitCode, QProcess::ExitStatus exitStatu
     emit connectionStateChanged(false);
     
     if (exitStatus == QProcess::CrashExit) {
-        m_terminal->appendPlainText("\n\nConnection crashed!");
+        ui->terminal->appendPlainText("\n\nConnection crashed!");
     } else {
-        m_terminal->appendPlainText(QString("\n\nConnection closed (exit code: %1)").arg(exitCode));
+        ui->terminal->appendPlainText(QString("\n\nConnection closed (exit code: %1)").arg(exitCode));
     }
 }
 
@@ -204,17 +181,16 @@ void SSHTerminal::onProcessError(QProcess::ProcessError error)
             break;
     }
     
-    m_terminal->appendPlainText("ERROR: " + errorMsg);
+    ui->terminal->appendPlainText("ERROR: " + errorMsg);
     emit errorOccurred(errorMsg);
 }
 
 void SSHTerminal::onInputReturnPressed()
 {
-    QString command = m_input->text();
+    QString command = ui->input->text();
     if (!command.isEmpty()) {
         sendCommand(command);
-        m_terminal->appendPlainText("> " + command);
-        m_input->clear();
+        ui->terminal->appendPlainText("> " + command);
+        ui->input->clear();
     }
 }
-
