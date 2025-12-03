@@ -47,4 +47,6 @@ HEADERS += \
 
 FORMS += \
     src/mainwindow.ui \
-    src/add_server.ui
+    src/add_server.ui \
+    src/sshterminal.ui \
+    src/sftpbrowser.ui

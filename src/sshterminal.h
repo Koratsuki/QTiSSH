@@ -3,10 +3,11 @@
 
 #include <QWidget>
 #include <QProcess>
-#include <QPlainTextEdit>
-#include <QVBoxLayout>
-#include <QLineEdit>
 #include "serverconfig.h"
+
+namespace Ui {
+class SSHTerminal;
+}
 
 class SSHTerminal : public QWidget
 {
@@ -33,18 +34,15 @@ private slots:
     void onInputReturnPressed();
 
 private:
-    void setupUI();
     void sendCommand(const QString &command);
     QString buildSSHCommand();
 
+    Ui::SSHTerminal *ui;
     ServerConfig m_config;
     QProcess *m_process;
-    QPlainTextEdit *m_terminal;
-    QLineEdit *m_input;
     bool m_connected;
     bool m_waitingForPassword;
     QString m_outputBuffer;
 };
 
 #endif // SSHTERMINAL_H
-
