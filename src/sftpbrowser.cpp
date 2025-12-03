@@ -10,6 +10,7 @@
 #include <QHeaderView>
 #include <QFrame>
 #include <QDir>
+#include <QListWidgetItem>
 
 SFTPBrowser::SFTPBrowser(const ServerConfig &config, QWidget *parent)
     : QWidget(parent)
@@ -200,7 +201,7 @@ void SFTPBrowser::onLocalFileDoubleClicked(const QModelIndex &index)
     if (m_localModel->isDir(index)) {
         // Navigate to directory
         ui->localTreeView->setRootIndex(index);
-        m_localPathLabel->setText("Local Files - " + m_localModel->filePath(index));
+        ui->localPathLabel->setText("Local Files - " + m_localModel->filePath(index));
     }
 }
 

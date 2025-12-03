@@ -16,6 +16,7 @@ class SFTPBrowser;
 class TransferQueueWidget;
 class QTreeView;
 class QListWidget;
+class QListWidgetItem;
 class QLabel;
 
 class SFTPBrowser : public QWidget
