@@ -6,7 +6,7 @@
 # -------------------------------------------------
 TEMPLATE = app
 TARGET = QTiSSH
-VERSION = v0.0.1
+VERSION = v0.1.4
 
 # -------------------------------------------------
 # Basic configuration
