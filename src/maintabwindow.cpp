@@ -64,8 +64,15 @@ void MainTabWindow::setupUI()
     
     // Set splitter proportions (20% for session panel, 80% for tabs)
     m_mainSplitter->setSizes({200, 800});
-    m_mainSplitter->setCollapsible(0, true);  // Session panel can be collapsed
+    m_mainSplitter->setCollapsible(0, false); // Session panel cannot be collapsed
     m_mainSplitter->setCollapsible(1, false); // Tab widget cannot be collapsed
+    
+    // Ensure session panel is visible and has proper size
+    m_sessionPanel->setVisible(true);
+    m_sessionPanel->show();
+    
+    // Set minimum sizes to prevent collapsing
+    m_mainSplitter->setChildrenCollapsible(false);
     
     // Layout central widget
     QHBoxLayout *centralLayout = new QHBoxLayout(m_centralWidget);
