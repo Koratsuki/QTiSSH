@@ -355,6 +355,8 @@ QRect VT100Terminal::getCharacterRect(int row, int column) const
 
 void VT100Terminal::drawCharacter(QPainter &painter, int row, int column, const TerminalChar &ch, const QRect &charRect)
 {
+    Q_UNUSED(row)
+    Q_UNUSED(column)
     // Get colors
     QColor fg = getCharacterColor(ch.foregroundColor, true);
     QColor bg = getCharacterColor(ch.backgroundColor, false);
@@ -802,7 +804,6 @@ QByteArray VT100Terminal::keyEventToSequence(QKeyEvent *event)
 }
 
 // Placeholder implementations for remaining methods
-bool VT100Terminal::hasSelection() const { return m_hasSelection; }
 QString VT100Terminal::selectedText() const { return QString(); }
 void VT100Terminal::clearSelection() { m_hasSelection = false; update(); }
 void VT100Terminal::selectAll() { /* Implementation */ }

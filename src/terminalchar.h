@@ -45,6 +45,11 @@ enum class TextAttribute : int {
 Q_DECLARE_FLAGS(TextAttributes, TextAttribute)
 Q_DECLARE_OPERATORS_FOR_FLAGS(TextAttributes)
 
+// Define bitwise NOT operator for TextAttribute
+inline TextAttributes operator~(TextAttribute attr) {
+    return static_cast<TextAttributes>(~static_cast<int>(attr));
+}
+
 /**
  * @brief Represents a single character in the terminal with its attributes
  */
