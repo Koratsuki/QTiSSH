@@ -33,7 +33,11 @@ SOURCES += \
     src/sftpconnection.cpp \
     src/sftpbrowser.cpp \
     src/foldermanager.cpp \
-    src/servertreewidget.cpp
+    src/servertreewidget.cpp \
+    src/terminalchar.cpp \
+    src/terminalscreen.cpp \
+    src/vt100parser.cpp \
+    src/vt100terminal.cpp
 
 HEADERS += \
     src/mainwindow.h \
@@ -46,7 +50,11 @@ HEADERS += \
     src/sftpconnection.h \
     src/sftpbrowser.h \
     src/foldermanager.h \
-    src/servertreewidget.h
+    src/servertreewidget.h \
+    src/terminalchar.h \
+    src/terminalscreen.h \
+    src/vt100parser.h \
+    src/vt100terminal.h
 
 FORMS += \
     src/mainwindow.ui \
