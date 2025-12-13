@@ -668,6 +668,7 @@ void MainTabWindow::onSessionStateChanged(SessionState newState, SessionState ol
 
 void MainTabWindow::onSessionNameChanged(const QString &newName)
 {
+    Q_UNUSED(newName)
     Session *session = qobject_cast<Session*>(sender());
     if (session) {
         updateSessionTab(session);

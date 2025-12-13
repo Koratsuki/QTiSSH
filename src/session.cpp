@@ -16,10 +16,8 @@ Session::Session(SessionType type, QObject *parent)
 
 Session::~Session()
 {
-    // Ensure proper cleanup
-    if (isConnected()) {
-        disconnect();
-    }
+    // Note: Cannot call pure virtual functions from destructor
+    // Subclasses must handle their own cleanup in their destructors
 }
 
 void Session::setSessionName(const QString &name)
