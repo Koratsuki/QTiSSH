@@ -11,7 +11,7 @@ VERSION = v0.1.4
 # -------------------------------------------------
 # Basic configuration
 # -------------------------------------------------
-QT += core gui widgets
+QT += core gui widgets network
 CONFIG += c++17 release
 # CONFIG += debug
 
