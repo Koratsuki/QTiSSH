@@ -369,11 +369,13 @@ void TransferQueueWidget::onTransferRemoved(const QString &transferId)
 
 void TransferQueueWidget::onTransferProgressChanged(const QString &transferId, int percent)
 {
+    Q_UNUSED(percent)
     updateTransferItem(transferId);
 }
 
 void TransferQueueWidget::onTransferStatusChanged(const QString &transferId, TransferStatus status)
 {
+    Q_UNUSED(status)
     updateTransferItem(transferId);
 }
 
