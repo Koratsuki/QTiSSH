@@ -33,6 +33,7 @@ private slots:
     void onServerDoubleClicked(const ServerConfig &server);
     void onTabCloseRequested(int index);
     void onServersChanged();
+    void onAboutClicked();
     
     // Folder management slots
     void onCreateFolderRequested(const QString &parentFolderId);
@@ -51,7 +52,6 @@ private:
     QTabWidget *m_tabWidget;
     
     void setupUI();
-    void setupMenuBar();
     void connectToServer(const ServerConfig &config);
     ServerConfig getSelectedServer();
 };

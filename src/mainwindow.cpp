@@ -21,7 +21,6 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     setupUI();
-    setupMenuBar();
     
     connect(m_serverManager, &ServerManager::serversChanged, this, &MainWindow::onServersChanged);
 }
@@ -33,25 +32,11 @@ MainWindow::~MainWindow()
 
 void MainWindow::setupUI()
 {
-    setWindowTitle("QTiSSH - SSH Connection Manager");
-    resize(1200, 700);
-
-    // Create central widget with splitter
-    QWidget *centralWidget = new QWidget(this);
-    QHBoxLayout *mainLayout = new QHBoxLayout(centralWidget);
-    mainLayout->setContentsMargins(0, 0, 0, 0);
+    // Get references to UI elements created by Qt Designer
+    m_serverTree = ui->serverTree;
+    m_tabWidget = ui->tabWidget;
     
-    QSplitter *splitter = new QSplitter(Qt::Horizontal, this);
-    
-    // Left panel - Server tree
-    QWidget *leftPanel = new QWidget(this);
-    QVBoxLayout *leftLayout = new QVBoxLayout(leftPanel);
-    
-    QLabel *serverListLabel = new QLabel("Servers & Folders", this);
-    serverListLabel->setStyleSheet("font-weight: bold; font-size: 14px; padding: 5px;");
-    leftLayout->addWidget(serverListLabel);
-    
-    m_serverTree = new ServerTreeWidget(this);
+    // Set up the server tree widget
     m_serverTree->setServerManager(m_serverManager);
     m_serverTree->setFolderManager(m_folderManager);
     
@@ -65,99 +50,34 @@ void MainWindow::setupUI()
     connect(m_serverTree, &ServerTreeWidget::deleteServerRequested, this, &MainWindow::onDeleteServerRequested);
     connect(m_serverTree, &ServerTreeWidget::moveServerRequested, this, &MainWindow::onMoveServerRequested);
     
-    leftLayout->addWidget(m_serverTree);
+    // Connect button signals (buttons are already created in UI file)
+    connect(ui->addButton, &QPushButton::clicked, this, &MainWindow::onAddServerClicked);
+    connect(ui->editButton, &QPushButton::clicked, this, &MainWindow::onEditServerClicked);
+    connect(ui->deleteButton, &QPushButton::clicked, this, &MainWindow::onDeleteServerClicked);
+    connect(ui->connectButton, &QPushButton::clicked, this, &MainWindow::onConnectClicked);
+    connect(ui->connectSftpButton, &QPushButton::clicked, this, &MainWindow::onConnectSftpClicked);
     
-    // Buttons
-    QVBoxLayout *buttonLayout = new QVBoxLayout();
-    
-    // First row of buttons
-    QHBoxLayout *buttonRow1 = new QHBoxLayout();
-    QPushButton *addButton = new QPushButton("Add", this);
-    QPushButton *editButton = new QPushButton("Edit", this);
-    QPushButton *deleteButton = new QPushButton("Delete", this);
-    
-    buttonRow1->addWidget(addButton);
-    buttonRow1->addWidget(editButton);
-    buttonRow1->addWidget(deleteButton);
-    
-    // Second row of buttons
-    QHBoxLayout *buttonRow2 = new QHBoxLayout();
-    QPushButton *connectButton = new QPushButton("SSH Terminal", this);
-    QPushButton *connectSftpButton = new QPushButton("SFTP Browser", this);
-    
-    buttonRow2->addWidget(connectButton);
-    buttonRow2->addWidget(connectSftpButton);
-    
-    buttonLayout->addLayout(buttonRow1);
-    buttonLayout->addLayout(buttonRow2);
-    
-    connect(addButton, &QPushButton::clicked, this, &MainWindow::onAddServerClicked);
-    connect(editButton, &QPushButton::clicked, this, &MainWindow::onEditServerClicked);
-    connect(deleteButton, &QPushButton::clicked, this, &MainWindow::onDeleteServerClicked);
-    connect(connectButton, &QPushButton::clicked, this, &MainWindow::onConnectClicked);
-    connect(connectSftpButton, &QPushButton::clicked, this, &MainWindow::onConnectSftpClicked);
-    leftLayout->addLayout(buttonLayout);
-    
-    leftPanel->setLayout(leftLayout);
-    leftPanel->setMaximumWidth(300);
-    leftPanel->setMinimumWidth(250);
-    
-    // Right panel - Tabs for connections
-    m_tabWidget = new QTabWidget(this);
-    m_tabWidget->setTabsClosable(true);
-    m_tabWidget->setMovable(true);
+    // Connect tab widget signals
     connect(m_tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::onTabCloseRequested);
     
-    // Add welcome tab
-    QWidget *welcomeWidget = new QWidget(this);
-    QVBoxLayout *welcomeLayout = new QVBoxLayout(welcomeWidget);
-    QLabel *welcomeLabel = new QLabel("Welcome to QTiSSH!\n\n"
-                                      "Select a server from the list on the left\n"
-                                      "and click 'Connect' or double-click to start an SSH session.\n\n"
-                                      "Click 'Add' to add a new server.", this);
-    welcomeLabel->setAlignment(Qt::AlignCenter);
-    welcomeLabel->setStyleSheet("font-size: 14px; color: #666;");
-    welcomeLayout->addWidget(welcomeLabel);
-    welcomeWidget->setLayout(welcomeLayout);
-    m_tabWidget->addTab(welcomeWidget, "Welcome");
+    // Connect menu actions (defined in UI file)
+    connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::onAboutClicked);
     
-    splitter->addWidget(leftPanel);
-    splitter->addWidget(m_tabWidget);
-    splitter->setStretchFactor(0, 0);
-    splitter->setStretchFactor(1, 1);
-    
-    mainLayout->addWidget(splitter);
-    centralWidget->setLayout(mainLayout);
-    setCentralWidget(centralWidget);
+    // Set splitter proportions
+    ui->mainSplitter->setStretchFactor(0, 0);
+    ui->mainSplitter->setStretchFactor(1, 1);
 }
 
-void MainWindow::setupMenuBar()
+void MainWindow::onAboutClicked()
 {
-    QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
-    
-    QAction *addServerAction = new QAction(tr("&Add Server"), this);
-    addServerAction->setShortcut(QKeySequence::New);
-    connect(addServerAction, &QAction::triggered, this, &MainWindow::onAddServerClicked);
-    fileMenu->addAction(addServerAction);
-    
-    fileMenu->addSeparator();
-    
-    QAction *quitAction = new QAction(tr("&Quit"), this);
-    quitAction->setShortcut(QKeySequence::Quit);
-    connect(quitAction, &QAction::triggered, this, &QMainWindow::close);
-    fileMenu->addAction(quitAction);
-    
-    QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
-    QAction *aboutAction = new QAction(tr("&About"), this);
-    connect(aboutAction, &QAction::triggered, this, [this]() {
-        QMessageBox::about(this, tr("About QTiSSH"),
-                          tr("QTiSSH v0.1\n\nA Qt-based SSH Connection Manager\n\n"
-                             "Features:\n"
-                             "- Multiple simultaneous SSH connections\n"
-                             "- Password and public key authentication\n"
-                             "- Server configuration management\n"));
-    });
-    helpMenu->addAction(aboutAction);
+    QMessageBox::about(this, tr("About QTiSSH"),
+                      tr("QTiSSH v0.1.4\n\nA Qt-based SSH Connection Manager\n\n"
+                         "Features:\n"
+                         "- Multiple simultaneous SSH connections\n"
+                         "- Password and public key authentication\n"
+                         "- Server configuration management\n"
+                         "- SFTP file browser\n"
+                         "- Folder organization"));
 }
 
 
