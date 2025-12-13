@@ -458,5 +458,3 @@ void SFTPBrowser::onLocalFilesDropped(const QList<QString> &files)
         }
     }
 }
-
-#include "sftpbrowser.moc"
