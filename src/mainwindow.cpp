@@ -61,6 +61,8 @@ void MainWindow::setupUI()
     connect(m_tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::onTabCloseRequested);
     
     // Connect menu actions (defined in UI file)
+    connect(ui->actionAddServer, &QAction::triggered, this, &MainWindow::onAddServerClicked);
+    connect(ui->actionQuit, &QAction::triggered, this, &QMainWindow::close);
     connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::onAboutClicked);
     
     // Set splitter proportions
