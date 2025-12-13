@@ -57,9 +57,9 @@ void TerminalSession::setupTerminal()
 void TerminalSession::setupConnections()
 {
     if (m_terminal) {
-        connect(m_terminal, &VT100Terminal::keyPressed,
+        QObject::connect(m_terminal, &VT100Terminal::keyPressed,
                 this, &TerminalSession::onTerminalKeyPressed);
-        connect(m_terminal, &VT100Terminal::bell,
+        QObject::connect(m_terminal, &VT100Terminal::bell,
                 this, &TerminalSession::onTerminalBell);
     }
 }
@@ -198,13 +198,13 @@ void TerminalSession::startLocalShell()
     
     m_process = new QProcess(this);
     
-    connect(m_process, &QProcess::started,
+    QObject::connect(m_process, &QProcess::started,
             this, &TerminalSession::onProcessStarted);
-    connect(m_process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+    QObject::connect(m_process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, &TerminalSession::onProcessFinished);
-    connect(m_process, &QProcess::errorOccurred,
+    QObject::connect(m_process, &QProcess::errorOccurred,
             this, &TerminalSession::onProcessError);
-    connect(m_process, &QProcess::readyRead,
+    QObject::connect(m_process, &QProcess::readyRead,
             this, &TerminalSession::onProcessReadyRead);
     
     // Start appropriate shell based on platform
@@ -239,13 +239,13 @@ void TerminalSession::startSSHConnection()
     
     m_process = new QProcess(this);
     
-    connect(m_process, &QProcess::started,
+    QObject::connect(m_process, &QProcess::started,
             this, &TerminalSession::onProcessStarted);
-    connect(m_process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+    QObject::connect(m_process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, &TerminalSession::onProcessFinished);
-    connect(m_process, &QProcess::errorOccurred,
+    QObject::connect(m_process, &QProcess::errorOccurred,
             this, &TerminalSession::onProcessError);
-    connect(m_process, &QProcess::readyRead,
+    QObject::connect(m_process, &QProcess::readyRead,
             this, &TerminalSession::onProcessReadyRead);
     
     // Build SSH command
@@ -286,13 +286,13 @@ void TerminalSession::startTelnetConnection()
     
     m_socket = new QTcpSocket(this);
     
-    connect(m_socket, &QTcpSocket::connected,
+    QObject::connect(m_socket, &QTcpSocket::connected,
             this, &TerminalSession::onSocketConnected);
-    connect(m_socket, &QTcpSocket::disconnected,
+    QObject::connect(m_socket, &QTcpSocket::disconnected,
             this, &TerminalSession::onSocketDisconnected);
-    connect(m_socket, &QTcpSocket::errorOccurred,
+    QObject::connect(m_socket, &QTcpSocket::errorOccurred,
             this, &TerminalSession::onSocketError);
-    connect(m_socket, &QTcpSocket::readyRead,
+    QObject::connect(m_socket, &QTcpSocket::readyRead,
             this, &TerminalSession::onSocketReadyRead);
     
     m_socket->connectToHost(m_host, m_port);
@@ -362,7 +362,7 @@ void TerminalSession::onProcessFinished(int exitCode, QProcess::ExitStatus exitS
     updateStatusText();
     
     if (m_terminal) {
-        m_terminal->writeData("\r\n[Process finished]\r\n");
+        m_terminal->writeData(QByteArray("\r\n[Process finished]\r\n"));
     }
     
     qDebug() << "Process finished for session:" << sessionName();
@@ -416,7 +416,7 @@ void TerminalSession::onSocketDisconnected()
     updateStatusText();
     
     if (m_terminal) {
-        m_terminal->writeData("\r\n[Connection closed]\r\n");
+        m_terminal->writeData(QByteArray("\r\n[Connection closed]\r\n"));
     }
     
     qDebug() << "Socket disconnected for session:" << sessionName();
@@ -424,6 +424,7 @@ void TerminalSession::onSocketDisconnected()
 
 void TerminalSession::onSocketError(QAbstractSocket::SocketError error)
 {
+    Q_UNUSED(error)
     QString errorStr = m_socket ? m_socket->errorString() : "Socket error";
     setError(errorStr);
     m_isConnected = false;
