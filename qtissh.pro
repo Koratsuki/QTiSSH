@@ -37,7 +37,11 @@ SOURCES += \
     src/terminalchar.cpp \
     src/terminalscreen.cpp \
     src/vt100parser.cpp \
-    src/vt100terminal.cpp
+    src/vt100terminal.cpp \
+    src/session.cpp \
+    src/sessionmanager.cpp \
+    src/terminalsession.cpp \
+    src/maintabwindow.cpp
 
 HEADERS += \
     src/mainwindow.h \
@@ -54,7 +58,11 @@ HEADERS += \
     src/terminalchar.h \
     src/terminalscreen.h \
     src/vt100parser.h \
-    src/vt100terminal.h
+    src/vt100terminal.h \
+    src/session.h \
+    src/sessionmanager.h \
+    src/terminalsession.h \
+    src/maintabwindow.h
 
 FORMS += \
     src/mainwindow.ui \

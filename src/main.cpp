@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+#include "maintabwindow.h"
 
 #include <QApplication>
 #include <QDir>
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-    MainWindow w;
+    MainTabWindow w;
     w.show();
     return a.exec();
 }
