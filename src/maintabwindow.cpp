@@ -62,10 +62,18 @@ void MainTabWindow::setupUI()
     m_mainSplitter->addWidget(m_sessionPanel);
     m_mainSplitter->addWidget(m_tabWidget);
     
+    // Debug: Print splitter info
+    qDebug() << "Splitter widget count:" << m_mainSplitter->count();
+    qDebug() << "Session panel size:" << m_sessionPanel->size();
+    qDebug() << "Session panel visible:" << m_sessionPanel->isVisible();
+    
     // Set splitter proportions (20% for session panel, 80% for tabs)
     m_mainSplitter->setSizes({200, 800});
-    m_mainSplitter->setCollapsible(0, true);  // Session panel can be collapsed
+    m_mainSplitter->setCollapsible(0, false); // Session panel cannot be collapsed
     m_mainSplitter->setCollapsible(1, false); // Tab widget cannot be collapsed
+    
+    // Debug: Print sizes after setting
+    qDebug() << "Splitter sizes after setting:" << m_mainSplitter->sizes();
     
     // Layout central widget
     QHBoxLayout *centralLayout = new QHBoxLayout(m_centralWidget);
@@ -177,6 +185,9 @@ void MainTabWindow::setupSessionPanel()
     m_sessionPanel = new QWidget;
     m_sessionPanel->setMinimumWidth(200);
     m_sessionPanel->setMaximumWidth(400);
+    
+    // Debug: Set a background color to make the panel visible
+    m_sessionPanel->setStyleSheet("background-color: #3c3c3c; border: 2px solid red;");
     
     QVBoxLayout *panelLayout = new QVBoxLayout(m_sessionPanel);
     
@@ -446,8 +457,10 @@ void MainTabWindow::onCloseAllSessions()
 
 void MainTabWindow::onSessionCreated(Session *session)
 {
+    qDebug() << "MainTabWindow::onSessionCreated called for session:" << (session ? session->sessionName() : "NULL");
     addSessionTab(session);
     addSessionToTree(session);
+    qDebug() << "Session added to tab and tree. Tree item count:" << m_sessionTree->topLevelItemCount();
     
     // Connect to session signals for updates
     connect(session, &Session::sessionStateChanged,
