@@ -15,6 +15,9 @@ QT += core gui widgets
 CONFIG += c++17 release
 # CONFIG += debug
 
+# Include paths
+INCLUDEPATH += src
+
 # -------------------------------------------------
 # Source files, headers and UI
 # -------------------------------------------------
