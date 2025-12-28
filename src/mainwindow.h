@@ -15,6 +15,7 @@ QT_END_NAMESPACE
 
 class SSHTerminal;
 class SFTPBrowser;
+class MainTabWindow;
 
 class MainWindow : public QMainWindow
 {
@@ -43,6 +44,12 @@ private slots:
     void onEditServerRequested(const QString &serverId);
     void onDeleteServerRequested(const QString &serverId);
     void onMoveServerRequested(const QString &serverId, const QString &newFolderId);
+    
+    // New slot for opening main tab window
+    void onOpenMainApplication();
+
+signals:
+    void openMainApplication();
 
 private:
     Ui::MainWindow *ui;
@@ -50,6 +57,7 @@ private:
     FolderManager *m_folderManager;
     ServerTreeWidget *m_serverTree;
     QTabWidget *m_tabWidget;
+    MainTabWindow *m_mainTabWindow;
     
     void setupUI();
     void connectToServer(const ServerConfig &config);
