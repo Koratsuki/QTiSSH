@@ -97,24 +97,10 @@ CMakeFiles/QTiSSH.dir/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/QTiSSH.dir/main.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /tmp/Koratsuki/QTiSSH/src/main.cpp -o CMakeFiles/QTiSSH.dir/main.cpp.s
 
-CMakeFiles/QTiSSH.dir/mainwindow.cpp.o: CMakeFiles/QTiSSH.dir/flags.make
-CMakeFiles/QTiSSH.dir/mainwindow.cpp.o: /tmp/Koratsuki/QTiSSH/src/mainwindow.cpp
-CMakeFiles/QTiSSH.dir/mainwindow.cpp.o: CMakeFiles/QTiSSH.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/QTiSSH.dir/mainwindow.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QTiSSH.dir/mainwindow.cpp.o -MF CMakeFiles/QTiSSH.dir/mainwindow.cpp.o.d -o CMakeFiles/QTiSSH.dir/mainwindow.cpp.o -c /tmp/Koratsuki/QTiSSH/src/mainwindow.cpp
-
-CMakeFiles/QTiSSH.dir/mainwindow.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/QTiSSH.dir/mainwindow.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /tmp/Koratsuki/QTiSSH/src/mainwindow.cpp > CMakeFiles/QTiSSH.dir/mainwindow.cpp.i
-
-CMakeFiles/QTiSSH.dir/mainwindow.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/QTiSSH.dir/mainwindow.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /tmp/Koratsuki/QTiSSH/src/mainwindow.cpp -o CMakeFiles/QTiSSH.dir/mainwindow.cpp.s
-
 CMakeFiles/QTiSSH.dir/maintabwindow.cpp.o: CMakeFiles/QTiSSH.dir/flags.make
 CMakeFiles/QTiSSH.dir/maintabwindow.cpp.o: /tmp/Koratsuki/QTiSSH/src/maintabwindow.cpp
 CMakeFiles/QTiSSH.dir/maintabwindow.cpp.o: CMakeFiles/QTiSSH.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/QTiSSH.dir/maintabwindow.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/QTiSSH.dir/maintabwindow.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QTiSSH.dir/maintabwindow.cpp.o -MF CMakeFiles/QTiSSH.dir/maintabwindow.cpp.o.d -o CMakeFiles/QTiSSH.dir/maintabwindow.cpp.o -c /tmp/Koratsuki/QTiSSH/src/maintabwindow.cpp
 
 CMakeFiles/QTiSSH.dir/maintabwindow.cpp.i: cmake_force
@@ -128,7 +114,7 @@ CMakeFiles/QTiSSH.dir/maintabwindow.cpp.s: cmake_force
 CMakeFiles/QTiSSH.dir/sessionmanager.cpp.o: CMakeFiles/QTiSSH.dir/flags.make
 CMakeFiles/QTiSSH.dir/sessionmanager.cpp.o: /tmp/Koratsuki/QTiSSH/src/sessionmanager.cpp
 CMakeFiles/QTiSSH.dir/sessionmanager.cpp.o: CMakeFiles/QTiSSH.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/QTiSSH.dir/sessionmanager.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/QTiSSH.dir/sessionmanager.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QTiSSH.dir/sessionmanager.cpp.o -MF CMakeFiles/QTiSSH.dir/sessionmanager.cpp.o.d -o CMakeFiles/QTiSSH.dir/sessionmanager.cpp.o -c /tmp/Koratsuki/QTiSSH/src/sessionmanager.cpp
 
 CMakeFiles/QTiSSH.dir/sessionmanager.cpp.i: cmake_force
@@ -142,7 +128,7 @@ CMakeFiles/QTiSSH.dir/sessionmanager.cpp.s: cmake_force
 CMakeFiles/QTiSSH.dir/session.cpp.o: CMakeFiles/QTiSSH.dir/flags.make
 CMakeFiles/QTiSSH.dir/session.cpp.o: /tmp/Koratsuki/QTiSSH/src/session.cpp
 CMakeFiles/QTiSSH.dir/session.cpp.o: CMakeFiles/QTiSSH.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/QTiSSH.dir/session.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/QTiSSH.dir/session.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QTiSSH.dir/session.cpp.o -MF CMakeFiles/QTiSSH.dir/session.cpp.o.d -o CMakeFiles/QTiSSH.dir/session.cpp.o -c /tmp/Koratsuki/QTiSSH/src/session.cpp
 
 CMakeFiles/QTiSSH.dir/session.cpp.i: cmake_force
@@ -156,7 +142,7 @@ CMakeFiles/QTiSSH.dir/session.cpp.s: cmake_force
 CMakeFiles/QTiSSH.dir/add_server.cpp.o: CMakeFiles/QTiSSH.dir/flags.make
 CMakeFiles/QTiSSH.dir/add_server.cpp.o: /tmp/Koratsuki/QTiSSH/src/add_server.cpp
 CMakeFiles/QTiSSH.dir/add_server.cpp.o: CMakeFiles/QTiSSH.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/QTiSSH.dir/add_server.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/QTiSSH.dir/add_server.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QTiSSH.dir/add_server.cpp.o -MF CMakeFiles/QTiSSH.dir/add_server.cpp.o.d -o CMakeFiles/QTiSSH.dir/add_server.cpp.o -c /tmp/Koratsuki/QTiSSH/src/add_server.cpp
 
 CMakeFiles/QTiSSH.dir/add_server.cpp.i: cmake_force
@@ -170,7 +156,7 @@ CMakeFiles/QTiSSH.dir/add_server.cpp.s: cmake_force
 CMakeFiles/QTiSSH.dir/serverconfig.cpp.o: CMakeFiles/QTiSSH.dir/flags.make
 CMakeFiles/QTiSSH.dir/serverconfig.cpp.o: /tmp/Koratsuki/QTiSSH/src/serverconfig.cpp
 CMakeFiles/QTiSSH.dir/serverconfig.cpp.o: CMakeFiles/QTiSSH.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/QTiSSH.dir/serverconfig.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/QTiSSH.dir/serverconfig.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QTiSSH.dir/serverconfig.cpp.o -MF CMakeFiles/QTiSSH.dir/serverconfig.cpp.o.d -o CMakeFiles/QTiSSH.dir/serverconfig.cpp.o -c /tmp/Koratsuki/QTiSSH/src/serverconfig.cpp
 
 CMakeFiles/QTiSSH.dir/serverconfig.cpp.i: cmake_force
@@ -184,7 +170,7 @@ CMakeFiles/QTiSSH.dir/serverconfig.cpp.s: cmake_force
 CMakeFiles/QTiSSH.dir/servermanager.cpp.o: CMakeFiles/QTiSSH.dir/flags.make
 CMakeFiles/QTiSSH.dir/servermanager.cpp.o: /tmp/Koratsuki/QTiSSH/src/servermanager.cpp
 CMakeFiles/QTiSSH.dir/servermanager.cpp.o: CMakeFiles/QTiSSH.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/QTiSSH.dir/servermanager.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/QTiSSH.dir/servermanager.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QTiSSH.dir/servermanager.cpp.o -MF CMakeFiles/QTiSSH.dir/servermanager.cpp.o.d -o CMakeFiles/QTiSSH.dir/servermanager.cpp.o -c /tmp/Koratsuki/QTiSSH/src/servermanager.cpp
 
 CMakeFiles/QTiSSH.dir/servermanager.cpp.i: cmake_force
@@ -198,7 +184,7 @@ CMakeFiles/QTiSSH.dir/servermanager.cpp.s: cmake_force
 CMakeFiles/QTiSSH.dir/sshterminal.cpp.o: CMakeFiles/QTiSSH.dir/flags.make
 CMakeFiles/QTiSSH.dir/sshterminal.cpp.o: /tmp/Koratsuki/QTiSSH/src/sshterminal.cpp
 CMakeFiles/QTiSSH.dir/sshterminal.cpp.o: CMakeFiles/QTiSSH.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/QTiSSH.dir/sshterminal.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/QTiSSH.dir/sshterminal.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QTiSSH.dir/sshterminal.cpp.o -MF CMakeFiles/QTiSSH.dir/sshterminal.cpp.o.d -o CMakeFiles/QTiSSH.dir/sshterminal.cpp.o -c /tmp/Koratsuki/QTiSSH/src/sshterminal.cpp
 
 CMakeFiles/QTiSSH.dir/sshterminal.cpp.i: cmake_force
@@ -212,7 +198,7 @@ CMakeFiles/QTiSSH.dir/sshterminal.cpp.s: cmake_force
 CMakeFiles/QTiSSH.dir/filetransfer.cpp.o: CMakeFiles/QTiSSH.dir/flags.make
 CMakeFiles/QTiSSH.dir/filetransfer.cpp.o: /tmp/Koratsuki/QTiSSH/src/filetransfer.cpp
 CMakeFiles/QTiSSH.dir/filetransfer.cpp.o: CMakeFiles/QTiSSH.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/QTiSSH.dir/filetransfer.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/QTiSSH.dir/filetransfer.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QTiSSH.dir/filetransfer.cpp.o -MF CMakeFiles/QTiSSH.dir/filetransfer.cpp.o.d -o CMakeFiles/QTiSSH.dir/filetransfer.cpp.o -c /tmp/Koratsuki/QTiSSH/src/filetransfer.cpp
 
 CMakeFiles/QTiSSH.dir/filetransfer.cpp.i: cmake_force
@@ -226,7 +212,7 @@ CMakeFiles/QTiSSH.dir/filetransfer.cpp.s: cmake_force
 CMakeFiles/QTiSSH.dir/filetransfermanager.cpp.o: CMakeFiles/QTiSSH.dir/flags.make
 CMakeFiles/QTiSSH.dir/filetransfermanager.cpp.o: /tmp/Koratsuki/QTiSSH/src/filetransfermanager.cpp
 CMakeFiles/QTiSSH.dir/filetransfermanager.cpp.o: CMakeFiles/QTiSSH.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/QTiSSH.dir/filetransfermanager.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/QTiSSH.dir/filetransfermanager.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QTiSSH.dir/filetransfermanager.cpp.o -MF CMakeFiles/QTiSSH.dir/filetransfermanager.cpp.o.d -o CMakeFiles/QTiSSH.dir/filetransfermanager.cpp.o -c /tmp/Koratsuki/QTiSSH/src/filetransfermanager.cpp
 
 CMakeFiles/QTiSSH.dir/filetransfermanager.cpp.i: cmake_force
@@ -240,7 +226,7 @@ CMakeFiles/QTiSSH.dir/filetransfermanager.cpp.s: cmake_force
 CMakeFiles/QTiSSH.dir/sftpconnection.cpp.o: CMakeFiles/QTiSSH.dir/flags.make
 CMakeFiles/QTiSSH.dir/sftpconnection.cpp.o: /tmp/Koratsuki/QTiSSH/src/sftpconnection.cpp
 CMakeFiles/QTiSSH.dir/sftpconnection.cpp.o: CMakeFiles/QTiSSH.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/QTiSSH.dir/sftpconnection.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/QTiSSH.dir/sftpconnection.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QTiSSH.dir/sftpconnection.cpp.o -MF CMakeFiles/QTiSSH.dir/sftpconnection.cpp.o.d -o CMakeFiles/QTiSSH.dir/sftpconnection.cpp.o -c /tmp/Koratsuki/QTiSSH/src/sftpconnection.cpp
 
 CMakeFiles/QTiSSH.dir/sftpconnection.cpp.i: cmake_force
@@ -254,7 +240,7 @@ CMakeFiles/QTiSSH.dir/sftpconnection.cpp.s: cmake_force
 CMakeFiles/QTiSSH.dir/sftpbrowser.cpp.o: CMakeFiles/QTiSSH.dir/flags.make
 CMakeFiles/QTiSSH.dir/sftpbrowser.cpp.o: /tmp/Koratsuki/QTiSSH/src/sftpbrowser.cpp
 CMakeFiles/QTiSSH.dir/sftpbrowser.cpp.o: CMakeFiles/QTiSSH.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/QTiSSH.dir/sftpbrowser.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/QTiSSH.dir/sftpbrowser.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QTiSSH.dir/sftpbrowser.cpp.o -MF CMakeFiles/QTiSSH.dir/sftpbrowser.cpp.o.d -o CMakeFiles/QTiSSH.dir/sftpbrowser.cpp.o -c /tmp/Koratsuki/QTiSSH/src/sftpbrowser.cpp
 
 CMakeFiles/QTiSSH.dir/sftpbrowser.cpp.i: cmake_force
@@ -268,7 +254,7 @@ CMakeFiles/QTiSSH.dir/sftpbrowser.cpp.s: cmake_force
 CMakeFiles/QTiSSH.dir/foldermanager.cpp.o: CMakeFiles/QTiSSH.dir/flags.make
 CMakeFiles/QTiSSH.dir/foldermanager.cpp.o: /tmp/Koratsuki/QTiSSH/src/foldermanager.cpp
 CMakeFiles/QTiSSH.dir/foldermanager.cpp.o: CMakeFiles/QTiSSH.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/QTiSSH.dir/foldermanager.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/QTiSSH.dir/foldermanager.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QTiSSH.dir/foldermanager.cpp.o -MF CMakeFiles/QTiSSH.dir/foldermanager.cpp.o.d -o CMakeFiles/QTiSSH.dir/foldermanager.cpp.o -c /tmp/Koratsuki/QTiSSH/src/foldermanager.cpp
 
 CMakeFiles/QTiSSH.dir/foldermanager.cpp.i: cmake_force
@@ -282,7 +268,7 @@ CMakeFiles/QTiSSH.dir/foldermanager.cpp.s: cmake_force
 CMakeFiles/QTiSSH.dir/servertreewidget.cpp.o: CMakeFiles/QTiSSH.dir/flags.make
 CMakeFiles/QTiSSH.dir/servertreewidget.cpp.o: /tmp/Koratsuki/QTiSSH/src/servertreewidget.cpp
 CMakeFiles/QTiSSH.dir/servertreewidget.cpp.o: CMakeFiles/QTiSSH.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/QTiSSH.dir/servertreewidget.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/QTiSSH.dir/servertreewidget.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QTiSSH.dir/servertreewidget.cpp.o -MF CMakeFiles/QTiSSH.dir/servertreewidget.cpp.o.d -o CMakeFiles/QTiSSH.dir/servertreewidget.cpp.o -c /tmp/Koratsuki/QTiSSH/src/servertreewidget.cpp
 
 CMakeFiles/QTiSSH.dir/servertreewidget.cpp.i: cmake_force
@@ -296,7 +282,7 @@ CMakeFiles/QTiSSH.dir/servertreewidget.cpp.s: cmake_force
 CMakeFiles/QTiSSH.dir/terminalsession.cpp.o: CMakeFiles/QTiSSH.dir/flags.make
 CMakeFiles/QTiSSH.dir/terminalsession.cpp.o: /tmp/Koratsuki/QTiSSH/src/terminalsession.cpp
 CMakeFiles/QTiSSH.dir/terminalsession.cpp.o: CMakeFiles/QTiSSH.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/QTiSSH.dir/terminalsession.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/QTiSSH.dir/terminalsession.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QTiSSH.dir/terminalsession.cpp.o -MF CMakeFiles/QTiSSH.dir/terminalsession.cpp.o.d -o CMakeFiles/QTiSSH.dir/terminalsession.cpp.o -c /tmp/Koratsuki/QTiSSH/src/terminalsession.cpp
 
 CMakeFiles/QTiSSH.dir/terminalsession.cpp.i: cmake_force
@@ -310,7 +296,7 @@ CMakeFiles/QTiSSH.dir/terminalsession.cpp.s: cmake_force
 CMakeFiles/QTiSSH.dir/vt100parser.cpp.o: CMakeFiles/QTiSSH.dir/flags.make
 CMakeFiles/QTiSSH.dir/vt100parser.cpp.o: /tmp/Koratsuki/QTiSSH/src/vt100parser.cpp
 CMakeFiles/QTiSSH.dir/vt100parser.cpp.o: CMakeFiles/QTiSSH.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building CXX object CMakeFiles/QTiSSH.dir/vt100parser.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/QTiSSH.dir/vt100parser.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QTiSSH.dir/vt100parser.cpp.o -MF CMakeFiles/QTiSSH.dir/vt100parser.cpp.o.d -o CMakeFiles/QTiSSH.dir/vt100parser.cpp.o -c /tmp/Koratsuki/QTiSSH/src/vt100parser.cpp
 
 CMakeFiles/QTiSSH.dir/vt100parser.cpp.i: cmake_force
@@ -324,7 +310,7 @@ CMakeFiles/QTiSSH.dir/vt100parser.cpp.s: cmake_force
 CMakeFiles/QTiSSH.dir/vt100terminal.cpp.o: CMakeFiles/QTiSSH.dir/flags.make
 CMakeFiles/QTiSSH.dir/vt100terminal.cpp.o: /tmp/Koratsuki/QTiSSH/src/vt100terminal.cpp
 CMakeFiles/QTiSSH.dir/vt100terminal.cpp.o: CMakeFiles/QTiSSH.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building CXX object CMakeFiles/QTiSSH.dir/vt100terminal.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building CXX object CMakeFiles/QTiSSH.dir/vt100terminal.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QTiSSH.dir/vt100terminal.cpp.o -MF CMakeFiles/QTiSSH.dir/vt100terminal.cpp.o.d -o CMakeFiles/QTiSSH.dir/vt100terminal.cpp.o -c /tmp/Koratsuki/QTiSSH/src/vt100terminal.cpp
 
 CMakeFiles/QTiSSH.dir/vt100terminal.cpp.i: cmake_force
@@ -338,7 +324,7 @@ CMakeFiles/QTiSSH.dir/vt100terminal.cpp.s: cmake_force
 CMakeFiles/QTiSSH.dir/terminalscreen.cpp.o: CMakeFiles/QTiSSH.dir/flags.make
 CMakeFiles/QTiSSH.dir/terminalscreen.cpp.o: /tmp/Koratsuki/QTiSSH/src/terminalscreen.cpp
 CMakeFiles/QTiSSH.dir/terminalscreen.cpp.o: CMakeFiles/QTiSSH.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building CXX object CMakeFiles/QTiSSH.dir/terminalscreen.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building CXX object CMakeFiles/QTiSSH.dir/terminalscreen.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QTiSSH.dir/terminalscreen.cpp.o -MF CMakeFiles/QTiSSH.dir/terminalscreen.cpp.o.d -o CMakeFiles/QTiSSH.dir/terminalscreen.cpp.o -c /tmp/Koratsuki/QTiSSH/src/terminalscreen.cpp
 
 CMakeFiles/QTiSSH.dir/terminalscreen.cpp.i: cmake_force
@@ -352,7 +338,7 @@ CMakeFiles/QTiSSH.dir/terminalscreen.cpp.s: cmake_force
 CMakeFiles/QTiSSH.dir/terminalchar.cpp.o: CMakeFiles/QTiSSH.dir/flags.make
 CMakeFiles/QTiSSH.dir/terminalchar.cpp.o: /tmp/Koratsuki/QTiSSH/src/terminalchar.cpp
 CMakeFiles/QTiSSH.dir/terminalchar.cpp.o: CMakeFiles/QTiSSH.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Building CXX object CMakeFiles/QTiSSH.dir/terminalchar.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building CXX object CMakeFiles/QTiSSH.dir/terminalchar.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/QTiSSH.dir/terminalchar.cpp.o -MF CMakeFiles/QTiSSH.dir/terminalchar.cpp.o.d -o CMakeFiles/QTiSSH.dir/terminalchar.cpp.o -c /tmp/Koratsuki/QTiSSH/src/terminalchar.cpp
 
 CMakeFiles/QTiSSH.dir/terminalchar.cpp.i: cmake_force
@@ -367,7 +353,6 @@ CMakeFiles/QTiSSH.dir/terminalchar.cpp.s: cmake_force
 QTiSSH_OBJECTS = \
 "CMakeFiles/QTiSSH.dir/QTiSSH_autogen/mocs_compilation.cpp.o" \
 "CMakeFiles/QTiSSH.dir/main.cpp.o" \
-"CMakeFiles/QTiSSH.dir/mainwindow.cpp.o" \
 "CMakeFiles/QTiSSH.dir/maintabwindow.cpp.o" \
 "CMakeFiles/QTiSSH.dir/sessionmanager.cpp.o" \
 "CMakeFiles/QTiSSH.dir/session.cpp.o" \
@@ -392,7 +377,6 @@ QTiSSH_EXTERNAL_OBJECTS =
 
 QTiSSH: CMakeFiles/QTiSSH.dir/QTiSSH_autogen/mocs_compilation.cpp.o
 QTiSSH: CMakeFiles/QTiSSH.dir/main.cpp.o
-QTiSSH: CMakeFiles/QTiSSH.dir/mainwindow.cpp.o
 QTiSSH: CMakeFiles/QTiSSH.dir/maintabwindow.cpp.o
 QTiSSH: CMakeFiles/QTiSSH.dir/sessionmanager.cpp.o
 QTiSSH: CMakeFiles/QTiSSH.dir/session.cpp.o
@@ -419,7 +403,7 @@ QTiSSH: /usr/lib/x86_64-linux-gnu/libGLX.so
 QTiSSH: /usr/lib/x86_64-linux-gnu/libOpenGL.so
 QTiSSH: /usr/lib/x86_64-linux-gnu/libQt6Core.so.6.4.2
 QTiSSH: CMakeFiles/QTiSSH.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Linking CXX executable QTiSSH"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Linking CXX executable QTiSSH"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/QTiSSH.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

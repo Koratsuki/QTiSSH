@@ -16,8 +16,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/QTiSSH.dir/main.cpp.o.d"
   "CMakeFiles/QTiSSH.dir/maintabwindow.cpp.o"
   "CMakeFiles/QTiSSH.dir/maintabwindow.cpp.o.d"
-  "CMakeFiles/QTiSSH.dir/mainwindow.cpp.o"
-  "CMakeFiles/QTiSSH.dir/mainwindow.cpp.o.d"
   "CMakeFiles/QTiSSH.dir/serverconfig.cpp.o"
   "CMakeFiles/QTiSSH.dir/serverconfig.cpp.o.d"
   "CMakeFiles/QTiSSH.dir/servermanager.cpp.o"
