@@ -33,29 +33,29 @@
     <item>
      <widget class="QSplitter" name="mainSplitter">
       <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+       <enum>Qt::Orientation::Horizontal</enum>
       </property>
       <widget class="QWidget" name="leftPanel">
-       <property name="maximumSize">
-        <size>
-         <width>300</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="minimumSize">
         <size>
          <width>250</width>
          <height>0</height>
         </size>
        </property>
+       <property name="maximumSize">
+        <size>
+         <width>300</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <layout class="QVBoxLayout" name="leftLayout">
         <item>
          <widget class="QLabel" name="serverListLabel">
-          <property name="text">
-           <string>Servers &amp; Folders</string>
-          </property>
           <property name="styleSheet">
            <string notr="true">font-weight: bold; font-size: 14px; padding: 5px;</string>
+          </property>
+          <property name="text">
+           <string>Servers &amp; Folders</string>
           </property>
          </widget>
         </item>
@@ -125,6 +125,9 @@
         <layout class="QVBoxLayout" name="welcomeLayout">
          <item>
           <widget class="QLabel" name="welcomeLabel">
+           <property name="styleSheet">
+            <string notr="true">font-size: 14px; color: #666;</string>
+           </property>
            <property name="text">
             <string>Welcome to QTiSSH!
 
@@ -134,10 +137,7 @@ and click 'Connect' or double-click to start an SSH session.
 Click 'Add' to add a new server.</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">font-size: 14px; color: #666;</string>
+            <set>Qt::AlignmentFlag::AlignCenter</set>
            </property>
           </widget>
          </item>
@@ -154,14 +154,13 @@ Click 'Add' to add a new server.</string>
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>24</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="actionAddServer"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
@@ -169,9 +168,76 @@ Click 'Add' to add a new server.</string>
     <property name="title">
      <string>&amp;Help</string>
     </property>
+    <addaction name="actionDocumentation"/>
+    <addaction name="actionCheck_for_updates"/>
+    <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menuTerminal">
+    <property name="title">
+     <string>Terminal</string>
+    </property>
+    <addaction name="actionOpen_new_tab"/>
+    <addaction name="actionClose_current_tab"/>
+    <addaction name="separator"/>
+    <addaction name="actionSet_tab_title"/>
+    <addaction name="actionDetach"/>
+    <addaction name="separator"/>
+    <addaction name="actionDuplicate_tab"/>
+    <addaction name="actionWrite_commands_in_all_Terminals"/>
+   </widget>
+   <widget class="QMenu" name="menuSessions">
+    <property name="title">
+     <string>Sessions</string>
+    </property>
+    <widget class="QMenu" name="menuUser_sessions">
+     <property name="title">
+      <string>User sessions</string>
+     </property>
+     <addaction name="actionLoad"/>
+    </widget>
+    <addaction name="actionNew_session"/>
+    <addaction name="separator"/>
+    <addaction name="menuUser_sessions"/>
+   </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <addaction name="actionConfiguration"/>
+    <addaction name="separator"/>
+    <addaction name="actionImport_configuration"/>
+    <addaction name="actionExport_configuration"/>
+    <addaction name="separator"/>
+    <addaction name="actionReset_configuration"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="actionCopy"/>
+    <addaction name="actionCopy_2"/>
+    <addaction name="actionPaste"/>
+    <addaction name="separator"/>
+    <addaction name="actionUndo_2"/>
+    <addaction name="actionRedo"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="actionSincle_Terminal"/>
+    <addaction name="actionTwo_terminals_mode_Left_split"/>
+    <addaction name="actionTwo_terminals_mode_Right_split"/>
+    <addaction name="action4_Terminals_mode"/>
+    <addaction name="separator"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
+   <addaction name="menuTerminal"/>
+   <addaction name="menuSessions"/>
+   <addaction name="menuView"/>
+   <addaction name="menuSettings"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -194,6 +260,126 @@ Click 'Add' to add a new server.</string>
   <action name="actionAbout">
    <property name="text">
     <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="actionOpen_new_tab">
+   <property name="text">
+    <string>Open new tab</string>
+   </property>
+  </action>
+  <action name="actionClose_current_tab">
+   <property name="text">
+    <string>Close current tab</string>
+   </property>
+  </action>
+  <action name="actionSet_tab_title">
+   <property name="text">
+    <string>Set tab title</string>
+   </property>
+  </action>
+  <action name="actionDetach">
+   <property name="text">
+    <string>Detach</string>
+   </property>
+  </action>
+  <action name="actionDuplicate_tab">
+   <property name="text">
+    <string>Duplicate current tab</string>
+   </property>
+  </action>
+  <action name="actionWrite_commands_in_all_Terminals">
+   <property name="text">
+    <string>Write commands on all Terminals</string>
+   </property>
+  </action>
+  <action name="actionCopy">
+   <property name="text">
+    <string>Cut</string>
+   </property>
+  </action>
+  <action name="actionCopy_2">
+   <property name="text">
+    <string>Copy</string>
+   </property>
+  </action>
+  <action name="actionPaste">
+   <property name="text">
+    <string>Paste</string>
+   </property>
+  </action>
+  <action name="actionUndo">
+   <property name="text">
+    <string>Undo</string>
+   </property>
+  </action>
+  <action name="actionUndo_2">
+   <property name="text">
+    <string>Undo</string>
+   </property>
+  </action>
+  <action name="actionRedo">
+   <property name="text">
+    <string>Redo</string>
+   </property>
+  </action>
+  <action name="actionNew_session">
+   <property name="text">
+    <string>New session</string>
+   </property>
+  </action>
+  <action name="actionLoad">
+   <property name="text">
+    <string>Load...</string>
+   </property>
+  </action>
+  <action name="actionSincle_Terminal">
+   <property name="text">
+    <string>Single terminal mode</string>
+   </property>
+  </action>
+  <action name="actionTwo_terminals_mode_Left_split">
+   <property name="text">
+    <string>2 terminals mode (Left split)</string>
+   </property>
+  </action>
+  <action name="actionTwo_terminals_mode_Right_split">
+   <property name="text">
+    <string>2 terminals mode (Right split)</string>
+   </property>
+  </action>
+  <action name="action4_Terminals_mode">
+   <property name="text">
+    <string>4 Terminals mode</string>
+   </property>
+  </action>
+  <action name="actionConfiguration">
+   <property name="text">
+    <string>Configuration</string>
+   </property>
+  </action>
+  <action name="actionImport_configuration">
+   <property name="text">
+    <string>Import configuration</string>
+   </property>
+  </action>
+  <action name="actionExport_configuration">
+   <property name="text">
+    <string>Export configuration</string>
+   </property>
+  </action>
+  <action name="actionReset_configuration">
+   <property name="text">
+    <string>Reset configuration</string>
+   </property>
+  </action>
+  <action name="actionDocumentation">
+   <property name="text">
+    <string>Documentation</string>
+   </property>
+  </action>
+  <action name="actionCheck_for_updates">
+   <property name="text">
+    <string>Check for updates</string>
    </property>
   </action>
  </widget>
