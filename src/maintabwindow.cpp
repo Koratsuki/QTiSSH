@@ -16,10 +16,18 @@
 MainTabWindow::MainTabWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_sessionManager(nullptr)
+    , m_serverManager(nullptr)
+    , m_folderManager(nullptr)
     , m_centralWidget(nullptr)
     , m_mainSplitter(nullptr)
     , m_sessionPanel(nullptr)
     , m_sessionTree(nullptr)
+    , m_serverTree(nullptr)
+    , m_addButton(nullptr)
+    , m_editButton(nullptr)
+    , m_deleteButton(nullptr)
+    , m_connectButton(nullptr)
+    , m_connectSftpButton(nullptr)
     , m_tabWidget(nullptr)
     , m_sessionPanelVisible(true)
 {
@@ -29,6 +37,10 @@ MainTabWindow::MainTabWindow(QWidget *parent)
     
     // Create session manager
     m_sessionManager = new SessionManager(this);
+    
+    // Create server and folder managers
+    m_serverManager = new ServerManager(this);
+    m_folderManager = new FolderManager(this);
     
     setupUI();
     setupConnections();
@@ -127,6 +139,36 @@ void MainTabWindow::setupMenuBar()
     m_exitAction->setStatusTip("Exit the application");
     fileMenu->addAction(m_exitAction);
     
+    // Servers menu (integrated from MainWindow)
+    QMenu *serversMenu = menuBar()->addMenu("&Servers");
+    
+    QAction *addServerAction = new QAction("&Add Server...", this);
+    addServerAction->setShortcut(QKeySequence("Ctrl+A"));
+    addServerAction->setStatusTip("Add a new server");
+    serversMenu->addAction(addServerAction);
+    
+    QAction *editServerAction = new QAction("&Edit Server...", this);
+    editServerAction->setShortcut(QKeySequence("Ctrl+E"));
+    editServerAction->setStatusTip("Edit the selected server");
+    serversMenu->addAction(editServerAction);
+    
+    QAction *deleteServerAction = new QAction("&Delete Server", this);
+    deleteServerAction->setShortcut(QKeySequence::Delete);
+    deleteServerAction->setStatusTip("Delete the selected server");
+    serversMenu->addAction(deleteServerAction);
+    
+    serversMenu->addSeparator();
+    
+    QAction *connectSSHAction = new QAction("Connect &SSH", this);
+    connectSSHAction->setShortcut(QKeySequence("Ctrl+S"));
+    connectSSHAction->setStatusTip("Connect to server via SSH");
+    serversMenu->addAction(connectSSHAction);
+    
+    QAction *connectSFTPAction = new QAction("Connect S&FTP", this);
+    connectSFTPAction->setShortcut(QKeySequence("Ctrl+F"));
+    connectSFTPAction->setStatusTip("Connect to server via SFTP");
+    serversMenu->addAction(connectSFTPAction);
+    
     // View menu
     QMenu *viewMenu = menuBar()->addMenu("&View");
     
@@ -183,13 +225,45 @@ void MainTabWindow::setupStatusBar()
 void MainTabWindow::setupSessionPanel()
 {
     m_sessionPanel = new QWidget;
-    m_sessionPanel->setMinimumWidth(200);
+    m_sessionPanel->setMinimumWidth(250);
     m_sessionPanel->setMaximumWidth(400);
     
     // Debug: Set a background color to make the panel visible
     m_sessionPanel->setStyleSheet("background-color: #3c3c3c; border: 2px solid red;");
     
     QVBoxLayout *panelLayout = new QVBoxLayout(m_sessionPanel);
+    
+    // Server management section (from MainWindow)
+    QGroupBox *serversGroup = new QGroupBox("Servers");
+    QVBoxLayout *serversLayout = new QVBoxLayout(serversGroup);
+    
+    // Server tree widget
+    m_serverTree = new ServerTreeWidget(this);
+    m_serverTree->setServerManager(m_serverManager);
+    m_serverTree->setFolderManager(m_folderManager);
+    serversLayout->addWidget(m_serverTree);
+    
+    // Server management buttons
+    QHBoxLayout *serverButtonsLayout = new QHBoxLayout;
+    m_addButton = new QPushButton("Add");
+    m_editButton = new QPushButton("Edit");
+    m_deleteButton = new QPushButton("Delete");
+    
+    serverButtonsLayout->addWidget(m_addButton);
+    serverButtonsLayout->addWidget(m_editButton);
+    serverButtonsLayout->addWidget(m_deleteButton);
+    serversLayout->addLayout(serverButtonsLayout);
+    
+    // Connection buttons
+    QHBoxLayout *connectButtonsLayout = new QHBoxLayout;
+    m_connectButton = new QPushButton("Connect SSH");
+    m_connectSftpButton = new QPushButton("Connect SFTP");
+    
+    connectButtonsLayout->addWidget(m_connectButton);
+    connectButtonsLayout->addWidget(m_connectSftpButton);
+    serversLayout->addLayout(connectButtonsLayout);
+    
+    panelLayout->addWidget(serversGroup);
     
     // Session tree
     QGroupBox *sessionsGroup = new QGroupBox("Active Sessions");
@@ -269,6 +343,26 @@ void MainTabWindow::setupConnections()
     connect(m_newSSHButton, &QPushButton::clicked, this, &MainTabWindow::onNewSSHSession);
     connect(m_newLocalButton, &QPushButton::clicked, this, &MainTabWindow::onNewLocalShell);
     connect(m_newTelnetButton, &QPushButton::clicked, this, &MainTabWindow::onNewTelnetSession);
+    
+    // Server management buttons
+    connect(m_addButton, &QPushButton::clicked, this, &MainTabWindow::onAddServerClicked);
+    connect(m_editButton, &QPushButton::clicked, this, &MainTabWindow::onEditServerClicked);
+    connect(m_deleteButton, &QPushButton::clicked, this, &MainTabWindow::onDeleteServerClicked);
+    connect(m_connectButton, &QPushButton::clicked, this, &MainTabWindow::onConnectClicked);
+    connect(m_connectSftpButton, &QPushButton::clicked, this, &MainTabWindow::onConnectSftpClicked);
+    
+    // Server tree widget
+    connect(m_serverTree, &ServerTreeWidget::serverDoubleClicked, this, &MainTabWindow::onServerDoubleClicked);
+    connect(m_serverTree, &ServerTreeWidget::createFolderRequested, this, &MainTabWindow::onCreateFolderRequested);
+    connect(m_serverTree, &ServerTreeWidget::renameFolderRequested, this, &MainTabWindow::onRenameFolderRequested);
+    connect(m_serverTree, &ServerTreeWidget::deleteFolderRequested, this, &MainTabWindow::onDeleteFolderRequested);
+    connect(m_serverTree, &ServerTreeWidget::addServerRequested, this, &MainTabWindow::onAddServerToFolderRequested);
+    connect(m_serverTree, &ServerTreeWidget::editServerRequested, this, &MainTabWindow::onEditServerRequested);
+    connect(m_serverTree, &ServerTreeWidget::deleteServerRequested, this, &MainTabWindow::onDeleteServerRequested);
+    connect(m_serverTree, &ServerTreeWidget::moveServerRequested, this, &MainTabWindow::onMoveServerRequested);
+    
+    // Server manager
+    connect(m_serverManager, &ServerManager::serversChanged, this, &MainTabWindow::onServersChanged);
     
     // Tab widget
     connect(m_tabWidget, &QTabWidget::currentChanged, this, &MainTabWindow::onTabChanged);
@@ -847,4 +941,100 @@ void MainTabWindow::closeEvent(QCloseEvent *event)
     m_sessionManager->removeAllSessions();
     
     event->accept();
+}
+
+// Server management slots (integrated from MainWindow)
+void MainTabWindow::onAddServerClicked()
+{
+    // Implementation would open the Add Server dialog
+    // For now, just show a placeholder message
+    QMessageBox::information(this, "Add Server", "Add Server dialog not yet implemented.");
+}
+
+void MainTabWindow::onEditServerClicked()
+{
+    // Implementation would open the Edit Server dialog for selected server
+    QMessageBox::information(this, "Edit Server", "Edit Server dialog not yet implemented.");
+}
+
+void MainTabWindow::onDeleteServerClicked()
+{
+    // Implementation would delete the selected server
+    QMessageBox::information(this, "Delete Server", "Delete Server functionality not yet implemented.");
+}
+
+void MainTabWindow::onConnectClicked()
+{
+    // Implementation would connect to selected server via SSH
+    QMessageBox::information(this, "Connect SSH", "SSH connection functionality not yet implemented.");
+}
+
+void MainTabWindow::onConnectSftpClicked()
+{
+    // Implementation would connect to selected server via SFTP
+    QMessageBox::information(this, "Connect SFTP", "SFTP connection functionality not yet implemented.");
+}
+
+void MainTabWindow::onServerDoubleClicked(const ServerConfig &server)
+{
+    // Implementation would connect to the double-clicked server
+    Q_UNUSED(server)
+    QMessageBox::information(this, "Connect", "Server connection functionality not yet implemented.");
+}
+
+void MainTabWindow::onServersChanged()
+{
+    // Implementation would refresh the server tree
+    if (m_serverTree) {
+        m_serverTree->refreshTree();
+    }
+}
+
+void MainTabWindow::onAboutClicked()
+{
+    onAbout(); // Reuse existing about dialog
+}
+
+// Folder management slots
+void MainTabWindow::onCreateFolderRequested(const QString &parentFolderId)
+{
+    Q_UNUSED(parentFolderId)
+    QMessageBox::information(this, "Create Folder", "Create Folder functionality not yet implemented.");
+}
+
+void MainTabWindow::onRenameFolderRequested(const QString &folderId)
+{
+    Q_UNUSED(folderId)
+    QMessageBox::information(this, "Rename Folder", "Rename Folder functionality not yet implemented.");
+}
+
+void MainTabWindow::onDeleteFolderRequested(const QString &folderId)
+{
+    Q_UNUSED(folderId)
+    QMessageBox::information(this, "Delete Folder", "Delete Folder functionality not yet implemented.");
+}
+
+void MainTabWindow::onAddServerToFolderRequested(const QString &folderId)
+{
+    Q_UNUSED(folderId)
+    QMessageBox::information(this, "Add Server to Folder", "Add Server to Folder functionality not yet implemented.");
+}
+
+void MainTabWindow::onEditServerRequested(const QString &serverId)
+{
+    Q_UNUSED(serverId)
+    QMessageBox::information(this, "Edit Server", "Edit Server functionality not yet implemented.");
+}
+
+void MainTabWindow::onDeleteServerRequested(const QString &serverId)
+{
+    Q_UNUSED(serverId)
+    QMessageBox::information(this, "Delete Server", "Delete Server functionality not yet implemented.");
+}
+
+void MainTabWindow::onMoveServerRequested(const QString &serverId, const QString &newFolderId)
+{
+    Q_UNUSED(serverId)
+    Q_UNUSED(newFolderId)
+    QMessageBox::information(this, "Move Server", "Move Server functionality not yet implemented.");
 }

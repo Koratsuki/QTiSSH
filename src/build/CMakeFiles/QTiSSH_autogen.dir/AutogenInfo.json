@@ -249,12 +249,6 @@
 			null
 		],
 		[
-			"/tmp/Koratsuki/QTiSSH/src/mainwindow.h",
-			"MU",
-			"EWIEGA46WW/moc_mainwindow.cpp",
-			null
-		],
-		[
 			"/tmp/Koratsuki/QTiSSH/src/serverconfig.h",
 			"MU",
 			"EWIEGA46WW/moc_serverconfig.cpp",
@@ -404,7 +398,6 @@
 		[ "/tmp/Koratsuki/QTiSSH/src/foldermanager.cpp", "MU", null ],
 		[ "/tmp/Koratsuki/QTiSSH/src/main.cpp", "MU", null ],
 		[ "/tmp/Koratsuki/QTiSSH/src/maintabwindow.cpp", "MU", null ],
-		[ "/tmp/Koratsuki/QTiSSH/src/mainwindow.cpp", "MU", null ],
 		[ "/tmp/Koratsuki/QTiSSH/src/serverconfig.cpp", "MU", null ],
 		[ "/tmp/Koratsuki/QTiSSH/src/servermanager.cpp", "MU", null ],
 		[ "/tmp/Koratsuki/QTiSSH/src/servertreewidget.cpp", "MU", null ],

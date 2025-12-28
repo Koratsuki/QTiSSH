@@ -355,30 +355,6 @@ maintabwindow.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/QTiSSH.dir/build.make CMakeFiles/QTiSSH.dir/maintabwindow.cpp.s
 .PHONY : maintabwindow.cpp.s
 
-mainwindow.o: mainwindow.cpp.o
-.PHONY : mainwindow.o
-
-# target to build an object file
-mainwindow.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/QTiSSH.dir/build.make CMakeFiles/QTiSSH.dir/mainwindow.cpp.o
-.PHONY : mainwindow.cpp.o
-
-mainwindow.i: mainwindow.cpp.i
-.PHONY : mainwindow.i
-
-# target to preprocess a source file
-mainwindow.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/QTiSSH.dir/build.make CMakeFiles/QTiSSH.dir/mainwindow.cpp.i
-.PHONY : mainwindow.cpp.i
-
-mainwindow.s: mainwindow.cpp.s
-.PHONY : mainwindow.s
-
-# target to generate assembly for a file
-mainwindow.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/QTiSSH.dir/build.make CMakeFiles/QTiSSH.dir/mainwindow.cpp.s
-.PHONY : mainwindow.cpp.s
-
 serverconfig.o: serverconfig.cpp.o
 .PHONY : serverconfig.o
 
@@ -726,9 +702,6 @@ help:
 	@echo "... maintabwindow.o"
 	@echo "... maintabwindow.i"
 	@echo "... maintabwindow.s"
-	@echo "... mainwindow.o"
-	@echo "... mainwindow.i"
-	@echo "... mainwindow.s"
 	@echo "... serverconfig.o"
 	@echo "... serverconfig.i"
 	@echo "... serverconfig.s"

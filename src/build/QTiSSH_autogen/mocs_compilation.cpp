@@ -4,7 +4,6 @@
 #include "EWIEGA46WW/moc_filetransfermanager.cpp"
 #include "EWIEGA46WW/moc_foldermanager.cpp"
 #include "EWIEGA46WW/moc_maintabwindow.cpp"
-#include "EWIEGA46WW/moc_mainwindow.cpp"
 #include "EWIEGA46WW/moc_servermanager.cpp"
 #include "EWIEGA46WW/moc_servertreewidget.cpp"
 #include "EWIEGA46WW/moc_session.cpp"

@@ -14,6 +14,10 @@
 #include <QToolBar>
 #include <QAction>
 #include "sessionmanager.h"
+#include "servermanager.h"
+#include "foldermanager.h"
+#include "servertreewidget.h"
+#include "serverconfig.h"
 
 class QTreeWidgetItem;
 
@@ -48,6 +52,25 @@ private slots:
     void onSessionCreated(Session *session);
     void onSessionRemoved(const QUuid &sessionId);
     void onActiveSessionChanged(Session *newSession, Session *oldSession);
+    
+    // Server management (from MainWindow)
+    void onAddServerClicked();
+    void onEditServerClicked();
+    void onDeleteServerClicked();
+    void onConnectClicked();
+    void onConnectSftpClicked();
+    void onServerDoubleClicked(const ServerConfig &server);
+    void onServersChanged();
+    void onAboutClicked();
+    
+    // Folder management slots
+    void onCreateFolderRequested(const QString &parentFolderId);
+    void onRenameFolderRequested(const QString &folderId);
+    void onDeleteFolderRequested(const QString &folderId);
+    void onAddServerToFolderRequested(const QString &folderId);
+    void onEditServerRequested(const QString &serverId);
+    void onDeleteServerRequested(const QString &serverId);
+    void onMoveServerRequested(const QString &serverId, const QString &newFolderId);
     
     // Tab management
     void onTabChanged(int index);
@@ -96,6 +119,8 @@ private:
     
     // Core components
     SessionManager *m_sessionManager;
+    ServerManager *m_serverManager;
+    FolderManager *m_folderManager;
     
     // UI components
     QWidget *m_centralWidget;
@@ -108,6 +133,14 @@ private:
     QPushButton *m_newSSHButton;
     QPushButton *m_newLocalButton;
     QPushButton *m_newTelnetButton;
+    
+    // Server management panel (integrated from MainWindow)
+    ServerTreeWidget *m_serverTree;
+    QPushButton *m_addButton;
+    QPushButton *m_editButton;
+    QPushButton *m_deleteButton;
+    QPushButton *m_connectButton;
+    QPushButton *m_connectSftpButton;
     
     // Tab widget (right side)
     QTabWidget *m_tabWidget;

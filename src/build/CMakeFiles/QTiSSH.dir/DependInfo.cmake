@@ -15,7 +15,6 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/tmp/Koratsuki/QTiSSH/src/foldermanager.cpp" "CMakeFiles/QTiSSH.dir/foldermanager.cpp.o" "gcc" "CMakeFiles/QTiSSH.dir/foldermanager.cpp.o.d"
   "/tmp/Koratsuki/QTiSSH/src/main.cpp" "CMakeFiles/QTiSSH.dir/main.cpp.o" "gcc" "CMakeFiles/QTiSSH.dir/main.cpp.o.d"
   "/tmp/Koratsuki/QTiSSH/src/maintabwindow.cpp" "CMakeFiles/QTiSSH.dir/maintabwindow.cpp.o" "gcc" "CMakeFiles/QTiSSH.dir/maintabwindow.cpp.o.d"
-  "/tmp/Koratsuki/QTiSSH/src/mainwindow.cpp" "CMakeFiles/QTiSSH.dir/mainwindow.cpp.o" "gcc" "CMakeFiles/QTiSSH.dir/mainwindow.cpp.o.d"
   "/tmp/Koratsuki/QTiSSH/src/serverconfig.cpp" "CMakeFiles/QTiSSH.dir/serverconfig.cpp.o" "gcc" "CMakeFiles/QTiSSH.dir/serverconfig.cpp.o.d"
   "/tmp/Koratsuki/QTiSSH/src/servermanager.cpp" "CMakeFiles/QTiSSH.dir/servermanager.cpp.o" "gcc" "CMakeFiles/QTiSSH.dir/servermanager.cpp.o.d"
   "/tmp/Koratsuki/QTiSSH/src/servertreewidget.cpp" "CMakeFiles/QTiSSH.dir/servertreewidget.cpp.o" "gcc" "CMakeFiles/QTiSSH.dir/servertreewidget.cpp.o.d"

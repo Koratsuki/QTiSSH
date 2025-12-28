@@ -1,7 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/QTiSSH_autogen"
   "QTiSSH_autogen/include/ui_add_server.h"
-  "QTiSSH_autogen/include/ui_mainwindow.h"
   "QTiSSH_autogen/mocs_compilation.cpp"
 )
 
