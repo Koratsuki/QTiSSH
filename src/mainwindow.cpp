@@ -3,6 +3,7 @@
 #include "add_server.h"
 #include "sshterminal.h"
 #include "sftpbrowser.h"
+#include "maintabwindow.h"
 #include <QSplitter>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -18,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
     , m_serverManager(new ServerManager(this))
     , m_folderManager(new FolderManager(this))
+    , m_mainTabWindow(nullptr)
 {
     ui->setupUi(this);
     setupUI();
@@ -27,6 +29,9 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    if (m_mainTabWindow) {
+        delete m_mainTabWindow;
+    }
     delete ui;
 }
 
@@ -64,6 +69,10 @@ void MainWindow::setupUI()
     connect(ui->actionAddServer, &QAction::triggered, this, &MainWindow::onAddServerClicked);
     connect(ui->actionQuit, &QAction::triggered, this, &QMainWindow::close);
     connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::onAboutClicked);
+    connect(ui->actionOpenMainApp, &QAction::triggered, this, &MainWindow::onOpenMainApplication);
+    
+    // Connect the new button
+    connect(ui->openMainAppButton, &QPushButton::clicked, this, &MainWindow::onOpenMainApplication);
     
     // Set splitter proportions
     ui->mainSplitter->setStretchFactor(0, 0);
@@ -345,4 +354,27 @@ void MainWindow::onMoveServerRequested(const QString &serverId, const QString &n
     
     server.setGroup(newFolderId);
     m_serverManager->updateServer(serverId, server);
+}
+
+void MainWindow::onOpenMainApplication()
+{
+    if (!m_mainTabWindow) {
+        m_mainTabWindow = new MainTabWindow();
+        
+        // Connect the close event of the main tab window to show this window again
+        connect(m_mainTabWindow, &QMainWindow::destroyed, this, [this]() {
+            m_mainTabWindow = nullptr;
+            this->show();
+            this->raise();
+            this->activateWindow();
+        });
+    }
+    
+    // Hide this window and show the main tab window
+    this->hide();
+    m_mainTabWindow->show();
+    m_mainTabWindow->raise();
+    m_mainTabWindow->activateWindow();
+    
+    emit openMainApplication();
 }

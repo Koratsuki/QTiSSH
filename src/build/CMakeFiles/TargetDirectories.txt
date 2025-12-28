@@ -1,0 +1,8 @@
+/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles/QTiSSH.dir
+/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles/edit_cache.dir
+/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles/rebuild_cache.dir
+/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles/list_install_components.dir
+/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles/install.dir
+/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles/install/local.dir
+/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles/install/strip.dir
+/tmp/Koratsuki/QTiSSH/src/build/CMakeFiles/QTiSSH_autogen.dir

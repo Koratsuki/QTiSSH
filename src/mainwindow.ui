@@ -134,12 +134,54 @@
 Select a server from the list on the left
 and click 'Connect' or double-click to start an SSH session.
 
-Click 'Add' to add a new server.</string>
+Click 'Add' to add a new server.
+
+Or click the button below to open the main tabbed interface:</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignmentFlag::AlignCenter</set>
            </property>
           </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="welcomeButtonLayout">
+           <item>
+            <spacer name="leftSpacer">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="openMainAppButton">
+             <property name="text">
+              <string>Open Main Application</string>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton { font-size: 12px; padding: 8px 16px; }</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="rightSpacer">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
          </item>
         </layout>
        </widget>
@@ -161,6 +203,7 @@ Click 'Add' to add a new server.</string>
     <property name="title">
      <string>&amp;File</string>
     </property>
+    <addaction name="actionOpenMainApp"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
@@ -380,6 +423,14 @@ Click 'Add' to add a new server.</string>
   <action name="actionCheck_for_updates">
    <property name="text">
     <string>Check for updates</string>
+   </property>
+  </action>
+  <action name="actionOpenMainApp">
+   <property name="text">
+    <string>&amp;Open Main Application</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
    </property>
   </action>
  </widget>
