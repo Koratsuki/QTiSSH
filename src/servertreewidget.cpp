@@ -102,6 +102,30 @@ void ServerTreeWidget::selectServer(const QString &serverId)
     }
 }
 
+void ServerTreeWidget::filterServers(const QString &filterText)
+{
+    QTreeWidgetItemIterator it(this);
+    while (*it) {
+        QTreeWidgetItem *item = *it;
+        if (filterText.isEmpty()) {
+            item->setHidden(false);
+        } else {
+            bool matches = item->text(0).contains(filterText, Qt::CaseInsensitive);
+            item->setHidden(!matches);
+            
+            // If it matches, make sure parents are visible
+            if (matches) {
+                QTreeWidgetItem *parent = item->parent();
+                while (parent) {
+                    parent->setHidden(false);
+                    parent = parent->parent();
+                }
+            }
+        }
+        ++it;
+    }
+}
+
 void ServerTreeWidget::selectFolder(const QString &folderId)
 {
     QTreeWidgetItem *item = findFolderItem(folderId);

@@ -41,7 +41,7 @@ FolderNode FolderNode::fromJson(const QJsonObject &json)
 FolderManager::FolderManager(QObject *parent)
     : QObject(parent)
 {
-    QString configDir = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+    QString configDir = QDir::homePath() + "/.config/QTiSSH";
     QDir().mkpath(configDir);
     m_filePath = configDir + "/folders.json";
     

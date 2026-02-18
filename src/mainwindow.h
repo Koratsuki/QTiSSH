@@ -8,6 +8,9 @@
 #include "foldermanager.h"
 #include "servertreewidget.h"
 #include "serverconfig.h"
+#include "thememanager.h"
+#include <QLineEdit>
+#include <QToolButton>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -34,6 +37,12 @@ private slots:
     void onTabCloseRequested(int index);
     void onServersChanged();
     void onAboutClicked();
+    void onThemeToggleClicked();
+    void onSearchTextChanged(const QString &text);
+    void onOptionsClicked();
+    void onCopyClicked();
+    void onPasteClicked();
+    void onCutClicked();
     
     // Folder management slots
     void onCreateFolderRequested(const QString &parentFolderId);
@@ -50,6 +59,8 @@ private:
     FolderManager *m_folderManager;
     ServerTreeWidget *m_serverTree;
     QTabWidget *m_tabWidget;
+    QLineEdit *m_searchBar;
+    QToolButton *m_themeButton;
     
     void setupUI();
     void connectToServer(const ServerConfig &config);

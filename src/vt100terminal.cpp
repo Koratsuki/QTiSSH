@@ -23,6 +23,7 @@ VT100Terminal::VT100Terminal(QWidget *parent)
     , m_defaultForeground(192, 192, 192)
     , m_defaultBackground(0, 0, 0)
     , m_cursorVisible(true)
+    , m_cursorStyle(Block)
     , m_cursorBlinking(true)
     , m_cursorBlinkState(true)
     , m_cursorBlinkTimer(nullptr)
@@ -30,6 +31,7 @@ VT100Terminal::VT100Terminal(QWidget *parent)
     , m_selecting(false)
     , m_scrollOffset(0)
     , m_hasFocus(false)
+    , m_appCursorKeys(false)
 {
     setupUI();
     setupConnections();
@@ -98,6 +100,7 @@ void VT100Terminal::setupConnections()
     connect(m_parser, &VT100Parser::restoreCursor, this, &VT100Terminal::onRestoreCursor);
     connect(m_parser, &VT100Parser::hideCursor, this, &VT100Terminal::onHideCursor);
     connect(m_parser, &VT100Parser::showCursor, this, &VT100Terminal::onShowCursor);
+    connect(m_parser, &VT100Parser::useAlternateScreenBuffer, this, &VT100Terminal::onUseAlternateScreenBuffer);
     connect(m_parser, &VT100Parser::clearScreen, this, &VT100Terminal::onClearScreen);
     connect(m_parser, &VT100Parser::clearScreenFromCursor, this, &VT100Terminal::onClearScreenFromCursor);
     connect(m_parser, &VT100Parser::clearScreenToCursor, this, &VT100Terminal::onClearScreenToCursor);
@@ -119,6 +122,7 @@ void VT100Terminal::setupConnections()
     connect(m_parser, &VT100Parser::clearAllTabStops, this, &VT100Terminal::onClearAllTabStops);
     connect(m_parser, &VT100Parser::tabForward, this, &VT100Terminal::onTabForward);
     connect(m_parser, &VT100Parser::tabBackward, this, &VT100Terminal::onTabBackward);
+    connect(m_parser, &VT100Parser::setPrivateMode, this, &VT100Terminal::onSetPrivateMode);
     connect(m_parser, &VT100Parser::bell, this, &VT100Terminal::onBell);
     
     // Connect cursor blink timer
@@ -240,6 +244,28 @@ void VT100Terminal::setCursorBlinking(bool blink)
         m_cursorBlinkState = true;
     }
     update();
+}
+
+void VT100Terminal::setCursorStyle(CursorStyle style)
+{
+    m_cursorStyle = style;
+    update();
+}
+
+void VT100Terminal::copy()
+{
+    QString text = selectedText();
+    if (!text.isEmpty()) {
+        QApplication::clipboard()->setText(text);
+    }
+}
+
+void VT100Terminal::paste()
+{
+    QString text = QApplication::clipboard()->text();
+    if (!text.isEmpty()) {
+        writeData(text);
+    }
 }
 
 void VT100Terminal::setScrollbackLines(int lines)
@@ -400,7 +426,18 @@ void VT100Terminal::drawCursor(QPainter &painter)
     QRect cursorRect = getCharacterRect(pos.row, pos.column);
     
     painter.setPen(m_defaultForeground);
-    painter.drawRect(cursorRect);
+    
+    switch (m_cursorStyle) {
+        case Block:
+            painter.drawRect(cursorRect);
+            break;
+        case Underline:
+            painter.drawLine(cursorRect.bottomLeft(), cursorRect.bottomRight());
+            break;
+        case IBeam:
+            painter.drawLine(cursorRect.topLeft(), cursorRect.bottomLeft());
+            break;
+    }
 }
 
 void VT100Terminal::drawSelection(QPainter &painter)
@@ -547,6 +584,11 @@ void VT100Terminal::onShowCursor()
     if (m_screen) m_screen->setCursorVisible(true);
 }
 
+void VT100Terminal::onUseAlternateScreenBuffer(bool use)
+{
+    if (m_screen) m_screen->setUseAlternateBuffer(use);
+}
+
 void VT100Terminal::onClearScreen()
 {
     if (m_screen) m_screen->clear();
@@ -684,6 +726,13 @@ void VT100Terminal::onTabBackward(int count)
     }
 }
 
+void VT100Terminal::onSetPrivateMode(int mode, bool enabled)
+{
+    if (mode == 1) { // DECCKM - Cursor Keys Mode
+        m_appCursorKeys = enabled;
+    }
+}
+
 void VT100Terminal::onBell()
 {
     emit bell();
@@ -761,35 +810,35 @@ void VT100Terminal::focusOutEvent(QFocusEvent *event)
 
 QByteArray VT100Terminal::keyEventToSequence(QKeyEvent *event)
 {
-    // Basic key handling - convert Qt key events to terminal sequences
-    QString text = event->text();
-    if (!text.isEmpty() && text[0].isPrint()) {
-        return text.toUtf8();
+    Qt::KeyboardModifiers modifiers = event->modifiers();
+    int key = event->key();
+
+    // Handle Control keys
+    if (modifiers & Qt::ControlModifier) {
+        if (key >= Qt::Key_A && key <= Qt::Key_Z) {
+            char ctrlKey = static_cast<char>(key - Qt::Key_A + 1);
+            return QByteArray(1, ctrlKey);
+        }
     }
-    
+
     // Handle special keys
-    switch (event->key()) {
+    switch (key) {
     case Qt::Key_Return:
     case Qt::Key_Enter:
         return "\r";
     case Qt::Key_Backspace:
-        return "\x08";
+        return "\x7f"; // Standard for modern Linux
     case Qt::Key_Tab:
         return "\t";
     case Qt::Key_Escape:
         return "\x1b";
     case Qt::Key_Up:
-        return "\x1b[A";
     case Qt::Key_Down:
-        return "\x1b[B";
     case Qt::Key_Right:
-        return "\x1b[C";
     case Qt::Key_Left:
-        return "\x1b[D";
     case Qt::Key_Home:
-        return "\x1b[H";
     case Qt::Key_End:
-        return "\x1b[F";
+        return cursorKeyToSequence(key);
     case Qt::Key_PageUp:
         return "\x1b[5~";
     case Qt::Key_PageDown:
@@ -799,11 +848,54 @@ QByteArray VT100Terminal::keyEventToSequence(QKeyEvent *event)
     case Qt::Key_Insert:
         return "\x1b[2~";
     }
+
+    // Function keys
+    if (key >= Qt::Key_F1 && key <= Qt::Key_F12) {
+        return functionKeyToSequence(key);
+    }
+
+    // Regular printable character
+    QString text = event->text();
+    if (!text.isEmpty()) {
+        return text.toUtf8();
+    }
     
     return QByteArray();
 }
 
-// Placeholder implementations for remaining methods
+QByteArray VT100Terminal::cursorKeyToSequence(int key)
+{
+    switch (key) {
+    case Qt::Key_Up:    return m_appCursorKeys ? "\x1bOA" : "\x1b[A";
+    case Qt::Key_Down:  return m_appCursorKeys ? "\x1bOB" : "\x1b[B";
+    case Qt::Key_Right: return m_appCursorKeys ? "\x1bOC" : "\x1b[C";
+    case Qt::Key_Left:  return m_appCursorKeys ? "\x1bOD" : "\x1b[D";
+    case Qt::Key_Home:  return "\x1b[H";
+    case Qt::Key_End:   return "\x1b[F";
+    }
+    return QByteArray();
+}
+
+QByteArray VT100Terminal::functionKeyToSequence(int key)
+{
+    switch (key) {
+    case Qt::Key_F1:  return "\x1bOP";
+    case Qt::Key_F2:  return "\x1bOQ";
+    case Qt::Key_F3:  return "\x1bOR";
+    case Qt::Key_F4:  return "\x1bOS";
+    case Qt::Key_F5:  return "\x1b[15~";
+    case Qt::Key_F6:  return "\x1b[17~";
+    case Qt::Key_F7:  return "\x1b[18~";
+    case Qt::Key_F8:  return "\x1b[19~";
+    case Qt::Key_F9:  return "\x1b[20~";
+    case Qt::Key_F10: return "\x1b[21~";
+    case Qt::Key_F11: return "\x1b[23~";
+    case Qt::Key_F12: return "\x1b[24~";
+    }
+    return QByteArray();
+}
+
+// Implement missing methods
 QString VT100Terminal::selectedText() const { return QString(); }
 void VT100Terminal::clearSelection() { m_hasSelection = false; update(); }
 void VT100Terminal::selectAll() { /* Implementation */ }
@@ -812,5 +904,3 @@ QPoint VT100Terminal::positionToPixel(const CursorPosition &position) const { Q_
 void VT100Terminal::updateSelection(const QPoint &pos) { Q_UNUSED(pos) }
 void VT100Terminal::normalizeSelection() { /* Implementation */ }
 bool VT100Terminal::isPositionSelected(int row, int column) const { Q_UNUSED(row) Q_UNUSED(column) return false; }
-QByteArray VT100Terminal::functionKeyToSequence(int key) { Q_UNUSED(key) return QByteArray(); }
-QByteArray VT100Terminal::cursorKeyToSequence(int key) { Q_UNUSED(key) return QByteArray(); }

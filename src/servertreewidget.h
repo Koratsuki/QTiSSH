@@ -37,6 +37,7 @@ public:
     
     void selectServer(const QString &serverId);
     void selectFolder(const QString &folderId);
+    void filterServers(const QString &filterText);
 
 signals:
     void serverDoubleClicked(const ServerConfig &server);

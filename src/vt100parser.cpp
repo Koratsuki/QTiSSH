@@ -93,7 +93,8 @@ void VT100Parser::processNormalCharacter(QChar ch)
         handleControlCharacter(ch);
     } else {
         // Regular printable character
-        m_textBuffer.append(ch);
+        QChar mappedCh = mapCharacter(ch);
+        m_textBuffer.append(mappedCh);
     }
 }
 
@@ -586,6 +587,9 @@ void VT100Parser::handleResetMode()
 void VT100Parser::handleSetPrivateMode()
 {
     for (int param : m_parameters) {
+        if (param == 1049 || param == 47) {
+            emit useAlternateScreenBuffer(true);
+        }
         emit setPrivateMode(param, true);
     }
 }
@@ -593,6 +597,9 @@ void VT100Parser::handleSetPrivateMode()
 void VT100Parser::handleResetPrivateMode()
 {
     for (int param : m_parameters) {
+        if (param == 1049 || param == 47) {
+            emit useAlternateScreenBuffer(false);
+        }
         emit setPrivateMode(param, false);
     }
 }
@@ -703,4 +710,50 @@ TerminalColor VT100Parser::parseColor(int colorCode, bool bright)
     }
     
     return TerminalColor::Default;
+}
+QChar VT100Parser::mapCharacter(QChar ch)
+{
+    // If not using the graphics character set, return as is
+    if (m_characterSets[m_currentCharacterSet] != '0') {
+        return ch;
+    }
+    
+    // Map VT100 Special Graphics characters to Unicode
+    // Reference: http://vt100.net/docs/vt100-ug/table3-9.html
+    switch (ch.unicode()) {
+    case '_': return QChar(0x00A0); // Blank
+    case '`': return QChar(0x25C6); // Diamond
+    case 'a': return QChar(0x2591); // Checkerboard (using light shade)
+    case 'b': return QChar(0x2409); // HT
+    case 'c': return QChar(0x240C); // FF
+    case 'd': return QChar(0x240D); // CR
+    case 'e': return QChar(0x240A); // LF
+    case 'f': return QChar(0x00B0); // Degree
+    case 'g': return QChar(0x00B1); // Plus/Minus
+    case 'h': return QChar(0x2424); // NL
+    case 'i': return QChar(0x240B); // VT
+    case 'j': return QChar(0x2518); // Lower Right Corner
+    case 'k': return QChar(0x2510); // Upper Right Corner
+    case 'l': return QChar(0x250C); // Upper Left Corner
+    case 'm': return QChar(0x2514); // Lower Left Corner
+    case 'n': return QChar(0x253C); // Crossing Lines
+    case 'o': return QChar(0x23BA); // Horizontal Line Scan 1
+    case 'p': return QChar(0x23BB); // Horizontal Line Scan 3
+    case 'q': return QChar(0x2500); // Horizontal Line
+    case 'r': return QChar(0x23BC); // Horizontal Line Scan 7
+    case 's': return QChar(0x23BD); // Horizontal Line Scan 9
+    case 't': return QChar(0x251C); // Left T
+    case 'u': return QChar(0x2524); // Right T
+    case 'v': return QChar(0x2534); // Bottom T
+    case 'w': return QChar(0x252C); // Top T
+    case 'x': return QChar(0x2502); // Vertical Line
+    case 'y': return QChar(0x2264); // Less Than or Equal
+    case 'z': return QChar(0x2265); // Greater Than or Equal
+    case '{': return QChar(0x03C0); // Pi
+    case '|': return QChar(0x2260); // Not Equal
+    case '}': return QChar(0x00A3); // British Pound
+    case '~': return QChar(0x00B7); // Middle Dot
+    }
+    
+    return ch;
 }

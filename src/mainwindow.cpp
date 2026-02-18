@@ -3,6 +3,9 @@
 #include "add_server.h"
 #include "sshterminal.h"
 #include "sftpbrowser.h"
+#include "settingsdialog.h"
+#include "vt100terminal.h"
+#include "settingsmanager.h"
 #include <QSplitter>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -56,6 +59,28 @@ void MainWindow::setupUI()
     connect(ui->deleteButton, &QPushButton::clicked, this, &MainWindow::onDeleteServerClicked);
     connect(ui->connectButton, &QPushButton::clicked, this, &MainWindow::onConnectClicked);
     connect(ui->connectSftpButton, &QPushButton::clicked, this, &MainWindow::onConnectSftpClicked);
+
+    // Create and add Search Bar and Theme Toggle to left panel
+    m_searchBar = new QLineEdit(this);
+    m_searchBar->setPlaceholderText(tr("Search servers..."));
+    m_searchBar->setClearButtonEnabled(true);
+    
+    m_themeButton = new QToolButton(this);
+    m_themeButton->setText(tr("🌙"));
+    m_themeButton->setToolTip(tr("Toggle Dark/Light Theme"));
+    
+    QHBoxLayout *searchLayout = new QHBoxLayout();
+    searchLayout->addWidget(m_searchBar);
+    searchLayout->addWidget(m_themeButton);
+    
+    // Insert search layout above the server tree (which is at index 1 in the left panel's VBoxLayout)
+    QVBoxLayout *leftLayout = qobject_cast<QVBoxLayout*>(ui->leftPanel->layout());
+    if (leftLayout) {
+        leftLayout->insertLayout(1, searchLayout);
+    }
+    
+    connect(m_searchBar, &QLineEdit::textChanged, this, &MainWindow::onSearchTextChanged);
+    connect(m_themeButton, &QToolButton::clicked, this, &MainWindow::onThemeToggleClicked);
     
     // Connect tab widget signals
     connect(m_tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::onTabCloseRequested);
@@ -65,9 +90,52 @@ void MainWindow::setupUI()
     connect(ui->actionQuit, &QAction::triggered, this, &QMainWindow::close);
     connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::onAboutClicked);
     
-    // Set splitter proportions
     ui->mainSplitter->setStretchFactor(0, 0);
     ui->mainSplitter->setStretchFactor(1, 1);
+
+    // Apply saved theme
+    ThemeManager::instance().applyTheme(SettingsManager::instance().theme());
+
+    // Force menu bar to be visible and non-native (inside the window)
+    ui->menubar->setNativeMenuBar(false);
+    this->setMenuBar(ui->menubar);
+    ui->menubar->setVisible(true);
+
+    // Create Edit Menu if it doesn't exist
+    QMenu *editMenu = nullptr;
+    for (QAction *action : ui->menubar->actions()) {
+        if (action->menu() && action->text().contains("Edit")) {
+            editMenu = action->menu();
+            break;
+        }
+    }
+    
+    if (!editMenu) {
+        editMenu = new QMenu(tr("&Edit"), this);
+        // Try to insert before Help, otherwise just add
+        if (ui->menuHelp) {
+            ui->menubar->insertMenu(ui->menuHelp->menuAction(), editMenu);
+        } else {
+            ui->menubar->addMenu(editMenu);
+        }
+    }
+    
+    QAction *cutAction = editMenu->addAction(tr("Cu&t"));
+    cutAction->setShortcut(QKeySequence::Cut);
+    connect(cutAction, &QAction::triggered, this, &MainWindow::onCutClicked);
+
+    QAction *copyAction = editMenu->addAction(tr("&Copy"));
+    copyAction->setShortcut(QKeySequence::Copy);
+    connect(copyAction, &QAction::triggered, this, &MainWindow::onCopyClicked);
+    
+    QAction *pasteAction = editMenu->addAction(tr("&Paste"));
+    pasteAction->setShortcut(QKeySequence::Paste);
+    connect(pasteAction, &QAction::triggered, this, &MainWindow::onPasteClicked);
+    
+    editMenu->addSeparator();
+    
+    QAction *optionsAction = editMenu->addAction(tr("&Options..."));
+    connect(optionsAction, &QAction::triggered, this, &MainWindow::onOptionsClicked);
 }
 
 void MainWindow::onAboutClicked()
@@ -82,7 +150,80 @@ void MainWindow::onAboutClicked()
                          "- Folder organization"));
 }
 
+void MainWindow::onThemeToggleClicked()
+{
+    ThemeManager &tm = ThemeManager::instance();
+    SettingsManager &sm = SettingsManager::instance();
+    if (tm.currentTheme() == ThemeManager::Light) {
+        tm.applyTheme(ThemeManager::Dark);
+        sm.setTheme(ThemeManager::Dark);
+        m_themeButton->setText(tr("☀️"));
+    } else {
+        tm.applyTheme(ThemeManager::Light);
+        sm.setTheme(ThemeManager::Light);
+        m_themeButton->setText(tr("🌙"));
+    }
+}
 
+void MainWindow::onSearchTextChanged(const QString &text)
+{
+    m_serverTree->filterServers(text);
+}
+
+void MainWindow::onCopyClicked()
+{
+    QWidget *current = m_tabWidget->currentWidget();
+    SSHTerminal *terminal = qobject_cast<SSHTerminal*>(current);
+    if (terminal) {
+        terminal->copy();
+    }
+}
+
+void MainWindow::onPasteClicked()
+{
+    QWidget *current = m_tabWidget->currentWidget();
+    SSHTerminal *terminal = qobject_cast<SSHTerminal*>(current);
+    if (terminal) {
+        terminal->paste();
+    }
+}
+
+void MainWindow::onCutClicked()
+{
+    // Cut is usually not applicable in a terminal, but we can copy
+    onCopyClicked();
+}
+
+void MainWindow::onOptionsClicked()
+{
+    SettingsDialog dialog(this);
+    
+    // Initialize with current settings from active tab
+    SSHTerminal *currentTerminal = qobject_cast<SSHTerminal*>(m_tabWidget->currentWidget());
+    if (currentTerminal) {
+        // We'd need getters in VT100Terminal for this to be perfect, 
+        // but for now let's just use defaults or assume they exist.
+    }
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        QFont font = dialog.terminalFont();
+        VT100Terminal::CursorStyle style = static_cast<VT100Terminal::CursorStyle>(dialog.cursorStyle());
+        
+        // Save to settings
+        SettingsManager &sm = SettingsManager::instance();
+        sm.setTerminalFont(font);
+        sm.setCursorStyle(style);
+        
+        // Apply to all active terminals
+        for (int i = 0; i < m_tabWidget->count(); ++i) {
+            SSHTerminal *terminal = qobject_cast<SSHTerminal*>(m_tabWidget->widget(i));
+            if (terminal) {
+                terminal->setTerminalFont(font);
+                terminal->setCursorStyle(style);
+            }
+        }
+    }
+}
 
 void MainWindow::onAddServerClicked()
 {
@@ -179,6 +320,11 @@ void MainWindow::connectToServer(const ServerConfig &config)
 {
     // Create new terminal tab
     SSHTerminal *terminal = new SSHTerminal(config, this);
+    
+    // Apply saved terminal settings
+    SettingsManager &sm = SettingsManager::instance();
+    terminal->setTerminalFont(sm.terminalFont());
+    terminal->setCursorStyle(sm.cursorStyle());
     
     QString tabTitle = QString("%1 (%2)").arg(config.alias()).arg(config.host());
     int tabIndex = m_tabWidget->addTab(terminal, tabTitle);

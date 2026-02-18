@@ -59,7 +59,7 @@ QList<ServerConfig> ServerManager::getAllServers() const
 
 void ServerManager::ensureConfigDirectory()
 {
-    QString configPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QString configPath = QDir::homePath() + "/.config/QTiSSH";
     QDir dir(configPath);
     if (!dir.exists()) {
         dir.mkpath(".");
@@ -68,7 +68,7 @@ void ServerManager::ensureConfigDirectory()
 
 QString ServerManager::getConfigFilePath() const
 {
-    QString configPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QString configPath = QDir::homePath() + "/.config/QTiSSH";
     return configPath + "/servers.json";
 }
 

@@ -28,6 +28,8 @@ public:
     AuthType authType() const { return m_authType; }
     QString group() const { return m_group; }
     QString tags() const { return m_tags; }
+    bool strictHostKeyChecking() const { return m_strictHostKeyChecking; }
+    QString tunnels() const { return m_tunnels; }
 
     // Setters
     void setAlias(const QString &alias) { m_alias = alias; }
@@ -39,6 +41,8 @@ public:
     void setAuthType(AuthType authType) { m_authType = authType; }
     void setGroup(const QString &group) { m_group = group; }
     void setTags(const QString &tags) { m_tags = tags; }
+    void setStrictHostKeyChecking(bool enable) { m_strictHostKeyChecking = enable; }
+    void setTunnels(const QString &tunnels) { m_tunnels = tunnels; }
 
     // Serialization
     QJsonObject toJson() const;
@@ -57,6 +61,8 @@ private:
     AuthType m_authType;
     QString m_group;
     QString m_tags;
+    bool m_strictHostKeyChecking;
+    QString m_tunnels;
 };
 
 #endif // SERVERCONFIG_H

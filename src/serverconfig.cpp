@@ -5,6 +5,7 @@ ServerConfig::ServerConfig()
     : m_id(QUuid::createUuid().toString(QUuid::WithoutBraces))
     , m_port(22)
     , m_authType(AuthType::Password)
+    , m_strictHostKeyChecking(false)
 {
 }
 
@@ -16,6 +17,7 @@ ServerConfig::ServerConfig(const QString &alias, const QString &host, int port,
     , m_port(port)
     , m_username(username)
     , m_authType(authType)
+    , m_strictHostKeyChecking(false)
 {
 }
 
@@ -32,6 +34,8 @@ QJsonObject ServerConfig::toJson() const
     json["authType"] = static_cast<int>(m_authType);
     json["group"] = m_group;
     json["tags"] = m_tags;
+    json["strictHostKeyChecking"] = m_strictHostKeyChecking;
+    json["tunnels"] = m_tunnels;
     return json;
 }
 
@@ -48,6 +52,8 @@ ServerConfig ServerConfig::fromJson(const QJsonObject &json)
     config.m_authType = static_cast<AuthType>(json["authType"].toInt());
     config.m_group = json["group"].toString();
     config.m_tags = json["tags"].toString();
+    config.m_strictHostKeyChecking = json["strictHostKeyChecking"].toBool(false);
+    config.m_tunnels = json["tunnels"].toString();
     return config;
 }
 

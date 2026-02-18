@@ -99,6 +99,7 @@ signals:
     // Mode operations
     void setMode(int mode, bool enable);
     void setPrivateMode(int mode, bool enable);
+    void useAlternateScreenBuffer(bool use);
     
     // Bell
     void bell();
@@ -186,6 +187,8 @@ private:
     
     // Pending text buffer
     QString m_textBuffer;
+
+    QChar mapCharacter(QChar ch);
     
     // Constants
     static const int DEFAULT_PARAMETER = -1;

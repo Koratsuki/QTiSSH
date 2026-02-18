@@ -20,6 +20,8 @@ set(PROJECT_SOURCES
         add_server.h
         add_server.cpp
         add_server.ui
+        settingsdialog.h
+        settingsdialog.cpp
         serverconfig.h
         serverconfig.cpp
         servermanager.h
@@ -34,10 +36,23 @@ set(PROJECT_SOURCES
         sftpconnection.cpp
         sftpbrowser.h
         sftpbrowser.cpp
+        thememanager.h
+        thememanager.cpp
+        snippetmanager.h
+        snippetmanager.cpp
         foldermanager.h
         foldermanager.cpp
-        servertreewidget.h
+        settingsmanager.h
+        settingsmanager.cpp
         servertreewidget.cpp
+        terminalchar.h
+        terminalchar.cpp
+        terminalscreen.h
+        terminalscreen.cpp
+        vt100parser.h
+        vt100parser.cpp
+        vt100terminal.h
+        vt100terminal.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -64,6 +79,7 @@ else()
 endif()
 
 target_link_libraries(QTiSSH PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_include_directories(QTiSSH PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

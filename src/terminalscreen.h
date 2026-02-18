@@ -69,6 +69,10 @@ public:
     int scrollingRegionTop() const { return m_scrollTop; }
     int scrollingRegionBottom() const { return m_scrollBottom; }
     
+    // Alternate Buffer
+    void setUseAlternateBuffer(bool use);
+    bool useAlternateBuffer() const { return m_useAlternateBuffer; }
+    
     // Tab stops
     void setTabStop(int column);
     void clearTabStop(int column);
@@ -98,9 +102,12 @@ private:
     void addLineToHistory(const QVector<TerminalChar> &line);
     void emitScreenChanged(int startRow, int endRow);
     
-    // Screen buffer
-    QVector<QVector<TerminalChar>> m_screen;
+    // Screen buffers
+    QVector<QVector<TerminalChar>> m_mainScreen;
+    QVector<QVector<TerminalChar>> m_alternateScreen;
+    QVector<QVector<TerminalChar>> *m_currentScreen; // Pointer to either m_mainScreen or m_alternateScreen
     QVector<QVector<TerminalChar>> m_history;
+    bool m_useAlternateBuffer;
     
     // Dimensions
     int m_rows;

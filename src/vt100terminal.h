@@ -30,6 +30,12 @@ class VT100Terminal : public QWidget
     Q_OBJECT
 
 public:
+    enum CursorStyle {
+        Block,
+        Underline,
+        IBeam
+    };
+
     explicit VT100Terminal(QWidget *parent = nullptr);
     ~VT100Terminal();
     
@@ -51,6 +57,8 @@ public:
     void setCursorBlinking(bool blink);
     bool isCursorBlinking() const { return m_cursorBlinking; }
     
+    void setCursorStyle(CursorStyle style);
+    CursorStyle cursorStyle() const { return m_cursorStyle; }
     // Scrollback
     void setScrollbackLines(int lines);
     int scrollbackLines() const;
@@ -64,6 +72,8 @@ public:
     QString selectedText() const;
     void clearSelection();
     void selectAll();
+    void copy();
+    void paste();
     
     // Colors
     void setColorScheme(const QColor &foreground, const QColor &background);
@@ -108,6 +118,7 @@ private slots:
     void onRestoreCursor();
     void onHideCursor();
     void onShowCursor();
+    void onUseAlternateScreenBuffer(bool use);
     void onClearScreen();
     void onClearScreenFromCursor();
     void onClearScreenToCursor();
@@ -129,6 +140,7 @@ private slots:
     void onClearAllTabStops();
     void onTabForward(int count);
     void onTabBackward(int count);
+    void onSetPrivateMode(int mode, bool enabled);
     void onBell();
 
 private:
@@ -181,6 +193,7 @@ private:
     
     // Cursor
     bool m_cursorVisible;
+    CursorStyle m_cursorStyle;
     bool m_cursorBlinking;
     bool m_cursorBlinkState;
     QTimer *m_cursorBlinkTimer;
@@ -196,6 +209,7 @@ private:
     
     // Terminal state
     bool m_hasFocus;
+    bool m_appCursorKeys;
     
     // Constants
     static const int CURSOR_BLINK_INTERVAL = 500;  // milliseconds

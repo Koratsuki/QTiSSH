@@ -14,18 +14,23 @@ TerminalScreen::TerminalScreen(int rows, int columns, QObject *parent)
     , m_currentAttributes(TextAttribute::None)
     , m_scrollTop(0)
     , m_scrollBottom(rows - 1)
+    , m_useAlternateBuffer(false)
 {
     initializeScreen();
+    m_currentScreen = &m_mainScreen;
 }
 
 void TerminalScreen::initializeScreen()
 {
-    // Initialize screen buffer
-    m_screen.resize(m_rows);
+    // Initialize main screen buffer
+    m_mainScreen.resize(m_rows);
+    m_alternateScreen.resize(m_rows);
     for (int i = 0; i < m_rows; ++i) {
-        m_screen[i].resize(m_columns);
+        m_mainScreen[i].resize(m_columns);
+        m_alternateScreen[i].resize(m_columns);
         for (int j = 0; j < m_columns; ++j) {
-            m_screen[i][j] = TerminalChar();
+            m_mainScreen[i][j] = TerminalChar();
+            m_alternateScreen[i][j] = TerminalChar();
         }
     }
     
@@ -43,7 +48,7 @@ void TerminalScreen::resize(int rows, int columns)
     }
     
     // Save current screen content
-    QVector<QVector<TerminalChar>> oldScreen = m_screen;
+    QVector<QVector<TerminalChar>> oldScreen = (*m_currentScreen);
     int oldRows = m_rows;
     int oldColumns = m_columns;
     
@@ -61,7 +66,7 @@ void TerminalScreen::resize(int rows, int columns)
     
     for (int i = 0; i < copyRows; ++i) {
         for (int j = 0; j < copyColumns; ++j) {
-            m_screen[i][j] = oldScreen[i][j];
+            (*m_currentScreen)[i][j] = oldScreen[i][j];
         }
     }
     
@@ -126,7 +131,7 @@ TerminalChar TerminalScreen::getChar(int row, int column) const
     if (!isValidPosition(row, column)) {
         return TerminalChar();
     }
-    return m_screen[row][column];
+    return (*m_currentScreen)[row][column];
 }
 
 void TerminalScreen::setChar(int row, int column, const TerminalChar &ch)
@@ -135,7 +140,7 @@ void TerminalScreen::setChar(int row, int column, const TerminalChar &ch)
         return;
     }
     
-    m_screen[row][column] = ch;
+    (*m_currentScreen)[row][column] = ch;
     emit screenChanged(QRect(column, row, 1, 1));
 }
 
@@ -205,7 +210,7 @@ QVector<TerminalChar> TerminalScreen::getLine(int row) const
     if (row < 0 || row >= m_rows) {
         return QVector<TerminalChar>();
     }
-    return m_screen[row];
+    return (*m_currentScreen)[row];
 }
 
 void TerminalScreen::setLine(int row, const QVector<TerminalChar> &line)
@@ -216,12 +221,12 @@ void TerminalScreen::setLine(int row, const QVector<TerminalChar> &line)
     
     int copyLength = qMin(line.size(), m_columns);
     for (int i = 0; i < copyLength; ++i) {
-        m_screen[row][i] = line[i];
+        (*m_currentScreen)[row][i] = line[i];
     }
     
     // Clear remaining columns if line is shorter
     for (int i = copyLength; i < m_columns; ++i) {
-        m_screen[row][i] = TerminalChar();
+        (*m_currentScreen)[row][i] = TerminalChar();
     }
     
     emit screenChanged(QRect(0, row, m_columns, 1));
@@ -234,7 +239,7 @@ void TerminalScreen::clearLine(int row)
     }
     
     for (int i = 0; i < m_columns; ++i) {
-        m_screen[row][i] = TerminalChar();
+        (*m_currentScreen)[row][i] = TerminalChar();
     }
     
     emit screenChanged(QRect(0, row, m_columns, 1));
@@ -243,7 +248,7 @@ void TerminalScreen::clearLine(int row)
 void TerminalScreen::clearLineFromCursor()
 {
     for (int i = m_cursorPos.column; i < m_columns; ++i) {
-        m_screen[m_cursorPos.row][i] = TerminalChar();
+        (*m_currentScreen)[m_cursorPos.row][i] = TerminalChar();
     }
     
     emit screenChanged(QRect(m_cursorPos.column, m_cursorPos.row, 
@@ -253,7 +258,7 @@ void TerminalScreen::clearLineFromCursor()
 void TerminalScreen::clearLineToCursor()
 {
     for (int i = 0; i <= m_cursorPos.column && i < m_columns; ++i) {
-        m_screen[m_cursorPos.row][i] = TerminalChar();
+        (*m_currentScreen)[m_cursorPos.row][i] = TerminalChar();
     }
     
     emit screenChanged(QRect(0, m_cursorPos.row, m_cursorPos.column + 1, 1));
@@ -267,12 +272,12 @@ void TerminalScreen::insertLine(int row)
     
     // Save the bottom line for history if we're scrolling the whole screen
     if (m_scrollTop == 0 && m_scrollBottom == m_rows - 1) {
-        addLineToHistory(m_screen[m_scrollBottom]);
+        addLineToHistory((*m_currentScreen)[m_scrollBottom]);
     }
     
     // Shift lines down
     for (int i = m_scrollBottom; i > row; --i) {
-        m_screen[i] = m_screen[i - 1];
+        (*m_currentScreen)[i] = (*m_currentScreen)[i - 1];
     }
     
     // Clear the inserted line
@@ -289,7 +294,7 @@ void TerminalScreen::deleteLine(int row)
     
     // Shift lines up
     for (int i = row; i < m_scrollBottom; ++i) {
-        m_screen[i] = m_screen[i + 1];
+        (*m_currentScreen)[i] = (*m_currentScreen)[i + 1];
     }
     
     // Clear the bottom line
@@ -344,12 +349,12 @@ void TerminalScreen::scrollUpInRegion(int lines)
     
     // Add scrolled lines to history
     for (int i = 0; i < lines; ++i) {
-        addLineToHistory(m_screen[m_scrollTop + i]);
+        addLineToHistory((*m_currentScreen)[m_scrollTop + i]);
     }
     
     // Shift lines up
     for (int i = m_scrollTop; i <= m_scrollBottom - lines; ++i) {
-        m_screen[i] = m_screen[i + lines];
+        (*m_currentScreen)[i] = (*m_currentScreen)[i + lines];
     }
     
     // Clear bottom lines
@@ -368,7 +373,7 @@ void TerminalScreen::scrollDownInRegion(int lines)
     
     // Shift lines down
     for (int i = m_scrollBottom; i >= m_scrollTop + lines; --i) {
-        m_screen[i] = m_screen[i - lines];
+        (*m_currentScreen)[i] = (*m_currentScreen)[i - lines];
     }
     
     // Clear top lines
@@ -507,6 +512,25 @@ void TerminalScreen::addLineToHistory(const QVector<TerminalChar> &line)
     while (m_history.size() > m_maxHistorySize) {
         m_history.removeFirst();
     }
+}
+
+void TerminalScreen::setUseAlternateBuffer(bool use)
+{
+    if (m_useAlternateBuffer == use) return;
+    
+    m_useAlternateBuffer = use;
+    m_currentScreen = use ? &m_alternateScreen : &m_mainScreen;
+    
+    // Clear alternate buffer when switching to it
+    if (use) {
+        for (int i = 0; i < m_rows; ++i) {
+            for (int j = 0; j < m_columns; ++j) {
+                m_alternateScreen[i][j] = TerminalChar();
+            }
+        }
+    }
+    
+    emit screenChanged(QRect(0, 0, m_columns, m_rows));
 }
 
 void TerminalScreen::emitScreenChanged(int startRow, int endRow)
