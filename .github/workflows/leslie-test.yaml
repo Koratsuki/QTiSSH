@@ -1,0 +1,10 @@
+name: Leslie test
+on: workflow_dispatch
+jobs:
+  action-of-job:
+    runs-on: leslie-runner
+    steps:
+    - name: Run test action
+      run: echo "Hello world!!!"
+    - name: Bye test action
+      run: echo "Bye user"
