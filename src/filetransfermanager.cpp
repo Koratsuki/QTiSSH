@@ -12,9 +12,13 @@ FileTransferManager::FileTransferManager(QObject *parent)
 }
 
 QString FileTransferManager::addTransfer(const QString &localPath, const QString &remotePath,
-                                        TransferType type, const QString &serverId)
+                                         TransferType type, const ServerConfig &config,
+                                         qint64 totalSize)
 {
-    FileTransfer *transfer = new FileTransfer(localPath, remotePath, type, serverId, this);
+    FileTransfer *transfer = new FileTransfer(localPath, remotePath, type, config, this);
+    if (totalSize >= 0) {
+        transfer->setTotalBytes(totalSize);
+    }
     
     // Connect signals
     connect(transfer, &FileTransfer::finished, this, &FileTransferManager::onTransferFinished);

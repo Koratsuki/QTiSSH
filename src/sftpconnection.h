@@ -68,6 +68,7 @@ private:
     QString m_currentRemotePath;
     QString m_pendingCommand;
     QString m_outputBuffer;
+    QString m_askPassPath;
     
     void setupProcess();
     void sendCommand(const QString &command);
@@ -75,6 +76,8 @@ private:
     QList<RemoteFileInfo> parseDirectoryListing(const QString &output);
     QString buildConnectionString();
     QStringList buildSftpCommand();
+    void setupAskPass();
+    void cleanupAskPass();
 };
 
 #endif // SFTPCONNECTION_H

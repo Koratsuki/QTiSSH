@@ -9,14 +9,35 @@ A modern, user-friendly SSH connection manager built with Qt. Manage multiple SS
 ## Features
 
 ✨ **Multiple Simultaneous Connections** - Open multiple SSH sessions in tabs  
-🔐 **Flexible Authentication** - Support for both password and public key authentication  
+🔐 **Flexible Authentication** - Password, public key and SSH agent (with agent forwarding)  
+🔑 **Encrypted Credentials** - Passwords are encrypted (AES-256) with an optional master password  
 💾 **Server Management** - Save and organize your server configurations  
 🎨 **Clean Interface** - Modern Qt-based UI with intuitive controls  
 📋 **Server Organization** - Group servers and add tags for easy management  
 🚀 **Quick Connect** - Double-click to connect instantly  
 📁 **SFTP File Browser** - Built-in dual-pane file manager with drag-and-drop  
-⬆️ **File Transfers** - Upload and download files with progress tracking  
+⬆️ **File Transfers** - Upload and download files with real progress tracking  
 🔄 **Transfer Queue** - Manage multiple file transfers with queue system  
+🧩 **Snippets** - Save and run frequently used commands  
+🕘 **Command History** - Per-server history of executed commands  
+🌐 **SSH Tunnels** - Local/Remote/Dynamic port forwarding per connection  
+🪂 **Jump Host** - Connect through an intermediate SSH host  
+🔀 **Import/Export** - Backup and restore server configurations (JSON)  
+🎨 **Terminal Colors** - Customizable foreground/background terminal colors  
+⚙️ **Custom SSH Options & Profiles** - Per-server options plus reusable named profiles  
+🔁 **Auto-reconnect** - Automatic reconnection after connection loss (max 3 attempts)  
+✏️ **Remote File Editing** - Edit remote files locally with auto-sync (Ctrl+S, external-change detection)  
+📊 **Server Monitoring** - CPU load, memory, disk and top processes via SSH  
+🕵️ **Network Discovery** - Scan the local network for SSH servers (port 22)  
+📜 **Connection Logs** - Timestamped session logs with viewer  
+🧩 **Split Panes** - Multiple terminals to the same server in one tab  
+🗂️ **Recent Connections** - Quick access to the last 15 servers  
+🔑 **OS Keychain** - Credentials stored in the system Secret Service (Linux) with file-encryption fallback  
+🌐 **Global Hotkeys** - System-wide Quick Connect / Toggle Window shortcuts (X11)  
+🖥️ **System Tray** - Minimize to tray with quick access menu  
+💾 **Session Restoration** - Restore open tabs on restart  
+🔒 **Application Lock** - Global password required to open the app  
+🌍 **Interface Languages** - English and Spanish, switchable from `Edit → Language` (the app restarts automatically to apply)
 
 ## Screenshots
 
@@ -28,10 +49,12 @@ Easy-to-use dialog for adding new servers with all necessary connection paramete
 
 ## Requirements
 
-- Qt 5.12+ or Qt 6.x
+- Qt 5.12+ or Qt 6.x (DBus and Network modules; global hotkeys require Qt Widgets)
 - CMake 3.16+
 - C++17 compatible compiler
+- OpenSSL (libssl-dev / libcrypto)
 - OpenSSH client (`ssh` and `sftp` commands must be available in PATH)
+- Linux: X11 development headers (`libx11-dev`) for global hotkeys
 
 ## Building from Source
 
@@ -73,10 +96,16 @@ Or use Qt Creator:
    - **Port**: SSH port (default: 22)
    - **Username**: SSH username
    - **Authentication Type**:
-     - **Password**: Enter your password
+     - **Password**: Enter your password (optionally encrypted with a master password)
      - **Public Key**: Browse to your private key file (e.g., `~/.ssh/id_rsa`)
+     - **SSH Agent**: Use a key loaded in your running SSH agent
+   - **Jump Host** (optional): SSH host used to reach this server
    - **Group** (optional): Organize servers into groups
    - **Tags** (optional): Add tags for filtering
+   - **Advanced**:
+     - **Strict Host Key Verification**: Verify the server's host key
+     - **Forward Agent**: Forward your SSH agent to the remote server
+     - **Tunnels**: One per line, e.g. `L:8080:localhost:80`, `R:5432:dbhost:5432` or `D:1080`
 
 3. Click **Add Server**
 
@@ -92,7 +121,30 @@ A new tab will open with either the SSH terminal or SFTP file browser.
 
 - **Edit**: Select a server and click **Edit** to modify its configuration
 - **Delete**: Select a server and click **Delete** to remove it
+- **Import/Export**: `File → Export Servers` / `File → Import Servers` to back up or restore configurations as JSON
 - **Multiple Connections**: Open multiple tabs to the same or different servers
+
+### Password Security
+
+- Set a **master password** via `Edit → Security → Set Master Password`. Once set, stored passwords are encrypted (AES-256-CBC, PBKDF2) on disk.
+- You will be prompted to unlock on startup; encrypted passwords are stored as `enc:...` in `servers.json`.
+- Use `Edit → Security` to change, remove or lock the master password.
+
+### Application Lock
+
+- Set a **global application password** via `Edit → Security → Application Lock → Set Application Password`. When enabled, QTiSSH asks for it before the main window opens.
+- Use `Change Application Password` to update it, `Remove Application Password` to disable the lock, and `Lock Application Now` to re-lock without restarting.
+- The password is never stored: only a salted PBKDF2-HMAC-SHA256 verifier is kept in `applock.conf`. It is independent of the master password used for credential encryption.
+
+### Language
+
+- QTiSSH ships with **English** (default) and **Spanish** interfaces. Switch anytime via `Edit → Language → English / Español`.
+- The choice is saved in `settings.conf` (`appearance/language`) and the app restarts automatically to apply it.
+
+### Snippets and Command History
+
+- **Snippets** (`Edit → Snippets`): save reusable commands and run them in the active terminal.
+- **Command History** (`Edit → Command History`): per-server list of previously executed commands; double-click or select and execute to re-run.
 
 ### Using the SFTP Browser
 
@@ -113,15 +165,24 @@ Click the **X** button on a tab to close the connection. If the connection is st
 
 ## Configuration
 
-Server configurations are stored in:
-- **Linux**: `~/.local/share/qtissh/servers.json`
-- **Windows**: `%APPDATA%/qtissh/servers.json`
-- **macOS**: `~/Library/Application Support/qtissh/servers.json`
+All configuration lives under `~/.config/QTiSSH/`:
+
+- `servers.json` - server configurations (passwords may be encrypted or keychain-marked)
+- `settings.conf` - application settings (theme, language, terminal colors, font size, tray, hotkeys)
+- `snippets.json` - saved command snippets
+- `history.json` - per-server command history
+- `master.conf` - master password verifier (only if you set one)
+- `applock.conf` - application password verifier (only if the app lock is enabled)
+- `profiles.json` - named SSH option profiles
+- `recent.json` - recent connections (last 15)
+- `logs/` - timestamped SSH session logs
+- `session.json` - last open tabs (used for session restoration)
 
 ## Security Notes
 
-- Passwords are stored in plaintext in the configuration file. Consider using public key authentication for better security.
-- The application disables strict host key checking for convenience. For production use, you may want to enable it.
+- Without a master password, passwords are stored in the OS keychain (Linux Secret Service via D-Bus) when available, otherwise as plain text. Enable/disable keychain usage in code via `security/useKeychain`; set a master password (`Edit → Security`) to fall back to file encryption.
+- Encrypted passwords use AES-256-CBC with a key derived from your master password via PBKDF2-HMAC-SHA256 (100,000 iterations). The verifier and salt in `master.conf` cannot be used to recover the password.
+- Host key verification is **disabled by default** for convenience. Enable **Strict Host Key Verification** in the server's Advanced options for production use.
 - SSH keys are referenced by path and not copied or modified by the application.
 
 ## Troubleshooting
@@ -183,16 +244,9 @@ QTiSSH/
 ### Adding Features
 
 Some ideas for future enhancements:
-- SSH tunneling/port forwarding
-- Remote file editing with auto-sync
-- Connection profiles with custom SSH options
-- Import/export server configurations
-- Dark/light theme toggle
-- Terminal color scheme customization
-- Command history
-- Connection logs
+- Tab reordering and grouping
 - SCP quick actions (right-click upload/download)
-- Encrypted password storage using system keychain
+- Extended SFTP operations (rename, chmod, symlinks)
 
 ## Contributing
 

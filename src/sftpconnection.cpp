@@ -1,6 +1,11 @@
 #include "sftpconnection.h"
+#include "passwordmanager.h"
 #include <QRegularExpression>
 #include <QDateTime>
+#include <QDir>
+#include <QFile>
+#include <QUuid>
+#include <QProcessEnvironment>
 
 SFTPConnection::SFTPConnection(const ServerConfig &config, QObject *parent)
     : QObject(parent)
@@ -35,12 +40,51 @@ void SFTPConnection::connectToServer()
     }
 
     QStringList args = buildSftpCommand();
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    setupAskPass();
+    if (!m_askPassPath.isEmpty()) {
+        env.insert("SSH_ASKPASS", m_askPassPath);
+        env.insert("SSH_ASKPASS_REQUIRE", "force");
+        env.insert("DISPLAY", ":0");
+    }
+    m_process->setProcessEnvironment(env);
     m_process->start("sftp", args);
     
     // Wait for connection to establish
     if (m_process->waitForStarted(5000)) {
         // Send initial commands to set up the session
         sendCommand("pwd"); // Get current directory
+    }
+}
+
+void SFTPConnection::setupAskPass()
+{
+    QString pwd = m_config.password();
+    if (m_config.authType() != AuthType::Password || pwd.isEmpty()
+        || pwd.startsWith(PasswordManager::instance().storagePrefix())) {
+        return;
+    }
+    
+    QString escaped = pwd;
+    escaped.replace("'", "'\\''");
+    
+    m_askPassPath = QDir::temp().filePath(
+        "qtissh-askpass-" + QUuid::createUuid().toString(QUuid::WithoutBraces));
+    QFile file(m_askPassPath);
+    if (file.open(QIODevice::WriteOnly)) {
+        file.write("#!/bin/sh\n");
+        file.write("echo '" + escaped.toUtf8() + "'\n");
+        file.close();
+        QFile::setPermissions(m_askPassPath,
+                              QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+    }
+}
+
+void SFTPConnection::cleanupAskPass()
+{
+    if (!m_askPassPath.isEmpty()) {
+        QFile::remove(m_askPassPath);
+        m_askPassPath.clear();
     }
 }
 
@@ -75,9 +119,26 @@ QStringList SFTPConnection::buildSftpCommand()
         args << "-i" << m_config.keyPath();
     }
     
-    // Disable strict host key checking for convenience
-    args << "-o" << "StrictHostKeyChecking=no";
-    args << "-o" << "UserKnownHostsFile=/dev/null";
+    // Jump host
+    if (!m_config.jumpHost().isEmpty()) {
+        args << "-J" << m_config.jumpHost();
+    }
+
+    // SSH agent forwarding
+    if (m_config.forwardAgent() || m_config.authType() == AuthType::SSHAgent) {
+        args << "-o" << "ForwardAgent=yes";
+    }
+    
+    // Host key verification
+    if (!m_config.strictHostKeyChecking()) {
+        args << "-o" << "StrictHostKeyChecking=no";
+        args << "-o" << "UserKnownHostsFile=/dev/null";
+    } else {
+        args << "-o" << "StrictHostKeyChecking=yes";
+    }
+
+    // Custom SSH options (from profile + server)
+    args << m_config.sshOptionArgs();
     
     // Add connection string
     args << QString("%1@%2").arg(m_config.username()).arg(m_config.host());
@@ -137,6 +198,7 @@ void SFTPConnection::uploadFile(const QString &localPath, const QString &remoteP
 void SFTPConnection::onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
     m_connected = false;
+    cleanupAskPass();
     emit disconnected();
     
     if (exitStatus == QProcess::CrashExit || exitCode != 0) {
@@ -146,6 +208,7 @@ void SFTPConnection::onProcessFinished(int exitCode, QProcess::ExitStatus exitSt
 
 void SFTPConnection::onProcessError(QProcess::ProcessError error)
 {
+    cleanupAskPass();
     QString errorMsg;
     switch (error) {
         case QProcess::FailedToStart:
@@ -184,10 +247,11 @@ void SFTPConnection::onReadyReadStandardError()
     QString error = QString::fromUtf8(data);
     
     // Check for password prompt
+    QString pwd = m_config.password();
     if (error.contains("password:", Qt::CaseInsensitive) && 
         m_config.authType() == AuthType::Password && 
-        !m_config.password().isEmpty()) {
-        m_process->write(m_config.password().toUtf8() + "\n");
+        !pwd.isEmpty() && !pwd.startsWith(PasswordManager::instance().storagePrefix())) {
+        m_process->write(pwd.toUtf8() + "\n");
         return;
     }
     

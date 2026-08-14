@@ -6,6 +6,7 @@
 #include <QList>
 #include <QTimer>
 #include "filetransfer.h"
+#include "serverconfig.h"
 
 class FileTransferManager : public QObject
 {
@@ -16,7 +17,8 @@ public:
     
     // Transfer management
     QString addTransfer(const QString &localPath, const QString &remotePath,
-                       TransferType type, const QString &serverId);
+                        TransferType type, const ServerConfig &config,
+                        qint64 totalSize = -1);
     void removeTransfer(const QString &transferId);
     void cancelTransfer(const QString &transferId);
     void pauseTransfer(const QString &transferId);

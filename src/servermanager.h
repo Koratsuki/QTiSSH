@@ -21,6 +21,14 @@ public:
     void saveServers();
     void loadServers();
 
+    // Import/Export
+    bool exportToFile(const QString &path) const;
+    int importFromFile(const QString &path);
+
+    // Credential helpers
+    void encryptAllPasswords();
+    void decryptAllPasswords();
+
 signals:
     void serversChanged();
 

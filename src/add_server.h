@@ -26,6 +26,7 @@ public:
 
 private slots:
     void onAuthTypeChanged(int index);
+    void onProfileChanged(int index);
     void onBrowseKeyClicked();
     void onAddClicked();
     void onCancelClicked();
@@ -34,6 +35,8 @@ private:
     Ui::add_Server *ui;
     FolderManager *m_folderManager;
     QString m_defaultFolderId;
+    QString m_originalPassword;
+    bool m_hasStoredPassword = false;
     
     void setupConnections();
     bool validateInput();

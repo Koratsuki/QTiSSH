@@ -96,7 +96,7 @@ void SFTPBrowser::connectToServer()
     if (isConnected()) {
         disconnectFromServer();
     } else {
-        ui->connectButton->setText("Connecting...");
+        ui->connectButton->setText(tr("Connecting..."));
         ui->connectButton->setEnabled(false);
         m_sftpConnection->connectToServer();
     }
@@ -116,7 +116,7 @@ void SFTPBrowser::refreshRemoteDirectory()
 
 void SFTPBrowser::onSftpConnected()
 {
-    ui->connectButton->setText("Disconnect");
+    ui->connectButton->setText(tr("Disconnect"));
     ui->connectButton->setEnabled(true);
     ui->uploadButton->setEnabled(true);
     ui->downloadButton->setEnabled(true);
@@ -131,7 +131,7 @@ void SFTPBrowser::onSftpConnected()
 
 void SFTPBrowser::onSftpDisconnected()
 {
-    ui->connectButton->setText("Connect");
+    ui->connectButton->setText(tr("Connect"));
     ui->connectButton->setEnabled(true);
     ui->uploadButton->setEnabled(false);
     ui->downloadButton->setEnabled(false);
@@ -180,6 +180,7 @@ void SFTPBrowser::updateRemoteFileList(const QList<RemoteFileInfo> &files)
         item->setData(Qt::UserRole, fileInfo.path);
         item->setData(Qt::UserRole + 1, fileInfo.isDirectory);
         item->setData(Qt::UserRole + 2, fileInfo.name);
+        item->setData(Qt::UserRole + 3, fileInfo.size);
         
         ui->remoteListWidget->addItem(item);
     }
@@ -192,7 +193,7 @@ void SFTPBrowser::updateConnectionState()
         "Not Connected";
     
     if (!isConnected()) {
-        ui->remotePathLabel->setText("Remote Files - " + status);
+        ui->remotePathLabel->setText(tr("Remote Files - ") + status);
     }
 }
 
@@ -201,7 +202,7 @@ void SFTPBrowser::onLocalFileDoubleClicked(const QModelIndex &index)
     if (m_localModel->isDir(index)) {
         // Navigate to directory
         ui->localTreeView->setRootIndex(index);
-        ui->localPathLabel->setText("Local Files - " + m_localModel->filePath(index));
+        ui->localPathLabel->setText(tr("Local Files - ") + m_localModel->filePath(index));
     }
 }
 
@@ -251,7 +252,7 @@ void SFTPBrowser::onUploadClicked()
     for (const QString &file : files) {
         QFileInfo fileInfo(file);
         QString remoteFile = remotePath + "/" + fileInfo.fileName();
-        m_transferManager->addTransfer(file, remoteFile, TransferType::Upload, m_config.id());
+        m_transferManager->addTransfer(file, remoteFile, TransferType::Upload, m_config);
     }
 }
 
@@ -269,8 +270,10 @@ void SFTPBrowser::onDownloadClicked()
         QString remotePath = item->data(Qt::UserRole).toString();
         QString fileName = item->data(Qt::UserRole + 2).toString();
         QString localPath = localDir + "/" + fileName;
+        qint64 remoteSize = item->data(Qt::UserRole + 3).toLongLong();
         
-        m_transferManager->addTransfer(localPath, remotePath, TransferType::Download, m_config.id());
+        m_transferManager->addTransfer(localPath, remotePath, TransferType::Download,
+                                       m_config, remoteSize);
     }
 }
 
@@ -337,7 +340,7 @@ void TransferQueueWidget::setupUI()
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
     
-    m_statusLabel = new QLabel("Transfer Queue", this);
+    m_statusLabel = new QLabel(tr("Transfer Queue"), this);
     m_statusLabel->setStyleSheet("font-weight: bold; padding: 5px;");
     layout->addWidget(m_statusLabel);
     
@@ -455,7 +458,7 @@ void SFTPBrowser::onLocalFilesDropped(const QList<QString> &files)
             if (fileInfo.exists()) {
                 // Queue file for upload to current remote directory
                 QString remotePath = currentRemotePath + "/" + fileInfo.fileName();
-                m_transferManager->addTransfer(filePath, remotePath, TransferType::Upload, m_config.id());
+                m_transferManager->addTransfer(filePath, remotePath, TransferType::Upload, m_config);
             }
         }
     }

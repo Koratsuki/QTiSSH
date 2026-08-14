@@ -6,6 +6,12 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
+SnippetManager& SnippetManager::instance()
+{
+    static SnippetManager inst;
+    return inst;
+}
+
 SnippetManager::SnippetManager(QObject *parent)
     : QObject(parent)
 {
@@ -31,6 +37,16 @@ QList<Snippet> SnippetManager::getAllSnippets() const
         list.append({it.key(), it.value()});
     }
     return list;
+}
+
+QString SnippetManager::getSnippetCommand(const QString &name) const
+{
+    return m_snippets.value(name);
+}
+
+bool SnippetManager::snippetExists(const QString &name) const
+{
+    return m_snippets.contains(name);
 }
 
 void SnippetManager::loadSnippets()

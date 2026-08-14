@@ -1,6 +1,7 @@
 #include "add_server.h"
 #include "ui_add_server.h"
 #include "foldermanager.h"
+#include "profilemanager.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QStandardPaths>
@@ -19,6 +20,15 @@ add_Server::add_Server(QWidget *parent) :
     // Setup authentication combo box
     ui->authTypeCombo->addItem("Password", static_cast<int>(AuthType::Password));
     ui->authTypeCombo->addItem("Public Key", static_cast<int>(AuthType::PublicKey));
+    ui->authTypeCombo->addItem("SSH Agent", static_cast<int>(AuthType::SSHAgent));
+    
+    // Populate profiles combo
+    ui->profileCombo->addItem(tr("(None)"), QString());
+    for (const QString &name : ProfileManager::instance().profileNames()) {
+        ui->profileCombo->addItem(name, name);
+    }
+    connect(ui->profileCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &add_Server::onProfileChanged);
     
     // Initially show password field
     onAuthTypeChanged(0);
@@ -42,20 +52,26 @@ void add_Server::onAuthTypeChanged(int index)
 {
     AuthType authType = static_cast<AuthType>(ui->authTypeCombo->itemData(index).toInt());
     
-    if (authType == AuthType::Password) {
-        ui->passwordLineEdit->setEnabled(true);
-        ui->passwordLineEdit->setVisible(true);
-        ui->keyPathLineEdit->setEnabled(false);
-        ui->keyPathLineEdit->setVisible(false);
-        ui->browseKeyButton->setEnabled(false);
-        ui->browseKeyButton->setVisible(false);
-    } else {
-        ui->passwordLineEdit->setEnabled(false);
-        ui->passwordLineEdit->setVisible(false);
-        ui->keyPathLineEdit->setEnabled(true);
-        ui->keyPathLineEdit->setVisible(true);
-        ui->browseKeyButton->setEnabled(true);
-        ui->browseKeyButton->setVisible(true);
+    bool showPassword = (authType == AuthType::Password);
+    bool showKey = (authType == AuthType::PublicKey);
+    
+    ui->passwordLineEdit->setEnabled(showPassword);
+    ui->passwordLineEdit->setVisible(showPassword);
+    ui->keyPathLineEdit->setEnabled(showKey);
+    ui->keyPathLineEdit->setVisible(showKey);
+    ui->browseKeyButton->setEnabled(showKey);
+    ui->browseKeyButton->setVisible(showKey);
+}
+
+void add_Server::onProfileChanged(int index)
+{
+    QString profileName = ui->profileCombo->itemData(index).toString();
+    if (profileName.isEmpty()) {
+        return;
+    }
+    QString options = ProfileManager::instance().optionsFor(profileName);
+    if (!options.trimmed().isEmpty()) {
+        ui->sshOptionsEdit->setPlainText(options.trimmed());
     }
 }
 
@@ -113,12 +129,12 @@ bool add_Server::validateInput()
     
     AuthType authType = static_cast<AuthType>(ui->authTypeCombo->currentData().toInt());
     if (authType == AuthType::Password) {
-        if (ui->passwordLineEdit->text().isEmpty()) {
+        if (ui->passwordLineEdit->text().isEmpty() && !m_hasStoredPassword) {
             QMessageBox::warning(this, tr("Validation Error"), tr("Please enter a password."));
             ui->passwordLineEdit->setFocus();
             return false;
         }
-    } else {
+    } else if (authType == AuthType::PublicKey) {
         if (ui->keyPathLineEdit->text().trimmed().isEmpty()) {
             QMessageBox::warning(this, tr("Validation Error"), tr("Please select an SSH key file."));
             return false;
@@ -137,13 +153,25 @@ ServerConfig add_Server::getServerConfig() const
     config.setUsername(ui->usernameLineEdit->text().trimmed());
     config.setGroup(ui->groupLineEdit->text().trimmed());
     config.setTags(ui->tagsLineEdit->text().trimmed());
+    config.setJumpHost(ui->jumpHostLineEdit->text().trimmed());
+    config.setStrictHostKeyChecking(ui->strictHostKeyCheckBox->isChecked());
+    config.setForwardAgent(ui->forwardAgentCheckBox->isChecked());
+    config.setTunnels(ui->tunnelsEdit->toPlainText().trimmed());
+    config.setSshOptions(ui->sshOptionsEdit->toPlainText().trimmed());
+    config.setAutoReconnect(ui->autoReconnectCheckBox->isChecked());
+    config.setProfileName(ui->profileCombo->currentData().toString());
     
     AuthType authType = static_cast<AuthType>(ui->authTypeCombo->currentData().toInt());
     config.setAuthType(authType);
     
     if (authType == AuthType::Password) {
-        config.setPassword(ui->passwordLineEdit->text());
-    } else {
+        QString entered = ui->passwordLineEdit->text();
+        if (entered.isEmpty() && m_hasStoredPassword) {
+            config.setPassword(m_originalPassword);
+        } else {
+            config.setPassword(entered);
+        }
+    } else if (authType == AuthType::PublicKey) {
         config.setKeyPath(ui->keyPathLineEdit->text().trimmed());
     }
     
@@ -158,13 +186,38 @@ void add_Server::setServerConfig(const ServerConfig &config)
     ui->usernameLineEdit->setText(config.username());
     ui->groupLineEdit->setText(config.group());
     ui->tagsLineEdit->setText(config.tags());
+    ui->jumpHostLineEdit->setText(config.jumpHost());
+    ui->strictHostKeyCheckBox->setChecked(config.strictHostKeyChecking());
+    ui->forwardAgentCheckBox->setChecked(config.forwardAgent());
+    ui->tunnelsEdit->setPlainText(config.tunnels());
+    ui->sshOptionsEdit->setPlainText(config.sshOptions());
+    ui->autoReconnectCheckBox->setChecked(config.autoReconnect());
+
+    // Select profile (or None)
+    int profileIndex = ui->profileCombo->findData(config.profileName());
+    if (profileIndex != -1) {
+        ui->profileCombo->setCurrentIndex(profileIndex);
+    } else {
+        ui->profileCombo->setCurrentIndex(0);
+    }
+    
+    m_originalPassword = config.password();
+    m_hasStoredPassword = !config.password().isEmpty();
     
     if (config.authType() == AuthType::Password) {
         ui->authTypeCombo->setCurrentIndex(0);
-        ui->passwordLineEdit->setText(config.password());
-    } else {
+        if (m_hasStoredPassword && config.password().startsWith("enc:")) {
+            ui->passwordLineEdit->clear();
+            ui->passwordLineEdit->setPlaceholderText(
+                tr("Password stored encrypted - leave empty to keep"));
+        } else {
+            ui->passwordLineEdit->setText(config.password());
+        }
+    } else if (config.authType() == AuthType::PublicKey) {
         ui->authTypeCombo->setCurrentIndex(1);
         ui->keyPathLineEdit->setText(config.keyPath());
+    } else {
+        ui->authTypeCombo->setCurrentIndex(2);
     }
 }
 

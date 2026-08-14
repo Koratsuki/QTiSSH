@@ -2,14 +2,14 @@
 <ui version="4.0">
  <class>add_Server</class>
  <widget class="QDialog" name="add_Server">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>400</width>
-    <height>450</height>
-   </rect>
-  </property>
+       <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>440</width>
+     <height>600</height>
+    </rect>
+   </property>
   <property name="windowTitle">
    <string>Add New Server</string>
   </property>
@@ -170,16 +170,118 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="tagsLineEdit">
-        <property name="placeholderText">
-         <string>web, database, etc.</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="tagsLineEdit">
+         <property name="placeholderText">
+          <string>web, database, etc.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="jumpHostLabel">
+         <property name="text">
+          <string>Jump Host:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="jumpHostLineEdit">
+         <property name="placeholderText">
+          <string>user@bastion.example.com (ProxyJump)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="profileLabel">
+         <property name="text">
+          <string>Profile:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QComboBox" name="profileCombo">
+         <property name="toolTip">
+          <string>Named set of SSH options (see Edit &gt; Profiles)</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="advancedGroupBox">
+      <property name="title">
+       <string>Advanced</string>
+      </property>
+      <layout class="QVBoxLayout" name="advancedLayout">
+       <item>
+        <widget class="QCheckBox" name="strictHostKeyCheckBox">
+         <property name="text">
+          <string>Verify host key (StrictHostKeyChecking)</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="forwardAgentCheckBox">
+         <property name="text">
+          <string>Enable SSH Agent Forwarding</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="autoReconnectCheckBox">
+         <property name="text">
+          <string>Reconnect automatically if the connection drops</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="sshOptionsLabel">
+         <property name="text">
+          <string>Custom SSH options (one per line):</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPlainTextEdit" name="sshOptionsEdit">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="placeholderText">
+          <string>Compression=yes
+Ciphers=aes128-ctr
+ServerAliveInterval=30</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="tunnelsLabel">
+         <property name="text">
+          <string>Tunnels (one per line):</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPlainTextEdit" name="tunnelsEdit">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>60</height>
+          </size>
+         </property>
+         <property name="placeholderText">
+          <string>L:8080:localhost:80
+R:5432:localhost:5432
+D:1080</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
    <item>
     <spacer name="verticalSpacer">
      <property name="orientation">

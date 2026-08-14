@@ -9,8 +9,23 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network DBus Charts)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network DBus Charts)
+find_package(OpenSSL REQUIRED)
+
+# Translations: regenerate .qm from .ts at configure time when lrelease is available.
+set(QTISSH_TS_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/i18n/qtissh_es.ts
+)
+find_program(LRELEASE_EXECUTABLE NAMES lrelease6 lrelease-qt6 lrelease)
+if(LRELEASE_EXECUTABLE)
+    foreach(_ts IN LISTS QTISSH_TS_FILES)
+        get_filename_component(_ts_we ${_ts} NAME_WE)
+        execute_process(
+            COMMAND ${LRELEASE_EXECUTABLE} -silent ${_ts} -qm ${CMAKE_CURRENT_SOURCE_DIR}/i18n/${_ts_we}.qm
+        )
+    endforeach()
+endif()
 
 set(PROJECT_SOURCES
         main.cpp
@@ -40,6 +55,14 @@ set(PROJECT_SOURCES
         thememanager.cpp
         snippetmanager.h
         snippetmanager.cpp
+        snippetdialog.h
+        snippetdialog.cpp
+        passwordmanager.h
+        passwordmanager.cpp
+        commandhistorymanager.h
+        commandhistorymanager.cpp
+        commandhistorydialog.h
+        commandhistorydialog.cpp
         foldermanager.h
         foldermanager.cpp
         settingsmanager.h
@@ -53,6 +76,39 @@ set(PROJECT_SOURCES
         vt100parser.cpp
         vt100terminal.h
         vt100terminal.cpp
+        profilemanager.h
+        profilemanager.cpp
+        profilemanagerdialog.h
+        profilemanagerdialog.cpp
+        sessionlogger.h
+        sessionlogger.cpp
+        recentconnectionsmanager.h
+        recentconnectionsmanager.cpp
+        terminalsplitwidget.h
+        terminalsplitwidget.cpp
+        globalhotkeymanager.h
+        globalhotkeymanager.cpp
+        keychainstore.h
+        keychainstore.cpp
+        quickcommandsdialog.h
+        quickcommandsdialog.cpp
+        monitoringdialog.h
+        monitoringdialog.cpp
+        metricbutton.h
+        metricbutton.cpp
+        servermonitoringbar.h
+        servermonitoringbar.cpp
+        networkdiscoverydialog.h
+        networkdiscoverydialog.cpp
+        connectionlogsdialog.h
+        connectionlogsdialog.cpp
+        remoteeditor.h
+        remoteeditor.cpp
+        applockmanager.h
+        applockmanager.cpp
+        applockdialog.h
+        applockdialog.cpp
+        i18n/translations.qrc
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -78,7 +134,12 @@ else()
     endif()
 endif()
 
-target_link_libraries(QTiSSH PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(QTiSSH PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::DBus Qt${QT_VERSION_MAJOR}::Charts OpenSSL::SSL OpenSSL::Crypto)
+
+if(UNIX AND NOT APPLE)
+    find_package(X11 REQUIRED)
+    target_link_libraries(QTiSSH PRIVATE X11::X11)
+endif()
 target_include_directories(QTiSSH PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
