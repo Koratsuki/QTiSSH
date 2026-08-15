@@ -2,6 +2,7 @@
 #define SSHTERMINAL_H
 
 #include <QProcess>
+#include <QTimer>
 #include "serverconfig.h"
 #include "vt100terminal.h"
 
@@ -32,6 +33,7 @@ public:
     void setTerminalColors(const QColor &foreground, const QColor &background);
     void executeCommand(const QString &command);
     QString currentTypedLine() const;
+    void focusTerminal();
 
 signals:
     void connectionStateChanged(bool connected);
@@ -55,6 +57,8 @@ private:
     void writeLog(const QString &text);
     void startSessionLog();
     void stopSessionLog();
+    void sendTerminalSize();
+    void onSizeSyncTimeout();
 
     Ui::SSHTerminal *ui;
     ServerConfig m_config;
@@ -69,6 +73,9 @@ private:
     QString m_outputBuffer;
     QByteArray m_inputBuffer;
     bool m_inEscapeSequence;
+    int m_lastSentRows = 0;
+    int m_lastSentCols = 0;
+    QTimer *m_sizeSyncTimer;
 };
 
 #endif // SSHTERMINAL_H

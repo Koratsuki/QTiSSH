@@ -46,8 +46,9 @@ public:
     void setTerminalSize(int rows, int columns);
     int terminalRows() const;
     int terminalColumns() const;
+    bool useAlternateBuffer() const;
     
-    // Terminal operations
+// Terminal operations
     void writeData(const QByteArray &data);
     void writeData(const QString &data);
     void clear();
@@ -59,6 +60,12 @@ public:
     
     void setCursorStyle(CursorStyle style);
     CursorStyle cursorStyle() const { return m_cursorStyle; }
+    
+    // Application cursor keys mode (DECCKM) - required for mc, vim, etc.
+    void setApplicationCursorKeys(bool enable);
+    void setApplicationCursorKeysLocal(bool enable);
+    bool applicationCursorKeys() const { return m_appCursorKeys; }
+    
     // Scrollback
     void setScrollbackLines(int lines);
     int scrollbackLines() const;
@@ -83,6 +90,7 @@ signals:
     void keyPressed(const QByteArray &data);
     void terminalSizeChanged(int rows, int columns);
     void bell();
+    void sendRawData(const QByteArray &data);
 
 protected:
     // Qt event handlers

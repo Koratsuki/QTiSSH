@@ -173,6 +173,11 @@ int VT100Terminal::terminalColumns() const
     return m_screen ? m_screen->columns() : 0;
 }
 
+bool VT100Terminal::useAlternateBuffer() const
+{
+    return m_screen ? m_screen->useAlternateBuffer() : false;
+}
+
 void VT100Terminal::updateTerminalSize()
 {
     if (!m_screen) return;
@@ -250,6 +255,19 @@ void VT100Terminal::setCursorStyle(CursorStyle style)
 {
     m_cursorStyle = style;
     update();
+}
+
+void VT100Terminal::setApplicationCursorKeys(bool enable)
+{
+    // Track DECCKM state locally only. The remote application controls its own
+    // cursor key mode (smkx/rmkx), and sending these sequences back to the remote
+    // causes the pty echo to corrupt this state.
+    m_appCursorKeys = enable;
+}
+
+void VT100Terminal::setApplicationCursorKeysLocal(bool enable)
+{
+    m_appCursorKeys = enable;
 }
 
 void VT100Terminal::copy()
@@ -587,6 +605,11 @@ void VT100Terminal::onShowCursor()
 void VT100Terminal::onUseAlternateScreenBuffer(bool use)
 {
     if (m_screen) m_screen->setUseAlternateBuffer(use);
+    
+    // Track DECCKM state locally. The remote application (mc, vim, etc.) sends
+    // its own smkx/rmkx sequences which the parser follows; do not write DECCKM
+    // sequences back to the remote (the pty echo would flip this state again).
+    setApplicationCursorKeys(use);
 }
 
 void VT100Terminal::onClearScreen()
@@ -750,6 +773,8 @@ void VT100Terminal::keyPressEvent(QKeyEvent *event)
 void VT100Terminal::mousePressEvent(QMouseEvent *event)
 {
     Q_UNUSED(event)
+    // Ensure terminal gets focus when clicked
+    setFocus(Qt::MouseFocusReason);
     // Mouse handling implementation
 }
 
@@ -865,15 +890,16 @@ QByteArray VT100Terminal::keyEventToSequence(QKeyEvent *event)
 
 QByteArray VT100Terminal::cursorKeyToSequence(int key)
 {
+    QByteArray seq;
     switch (key) {
-    case Qt::Key_Up:    return m_appCursorKeys ? "\x1bOA" : "\x1b[A";
-    case Qt::Key_Down:  return m_appCursorKeys ? "\x1bOB" : "\x1b[B";
-    case Qt::Key_Right: return m_appCursorKeys ? "\x1bOC" : "\x1b[C";
-    case Qt::Key_Left:  return m_appCursorKeys ? "\x1bOD" : "\x1b[D";
-    case Qt::Key_Home:  return "\x1b[H";
-    case Qt::Key_End:   return "\x1b[F";
+    case Qt::Key_Up:    seq = m_appCursorKeys ? "\x1bOA" : "\x1b[A"; break;
+    case Qt::Key_Down:  seq = m_appCursorKeys ? "\x1bOB" : "\x1b[B"; break;
+    case Qt::Key_Right: seq = m_appCursorKeys ? "\x1bOC" : "\x1b[C"; break;
+    case Qt::Key_Left:  seq = m_appCursorKeys ? "\x1bOD" : "\x1b[D"; break;
+    case Qt::Key_Home:  seq = "\x1b[H"; break;
+    case Qt::Key_End:   seq = "\x1b[F"; break;
     }
-    return QByteArray();
+    return seq;
 }
 
 QByteArray VT100Terminal::functionKeyToSequence(int key)

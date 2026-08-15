@@ -83,6 +83,11 @@ void TerminalSplitWidget::setActive(SSHTerminal *terminal)
     }
     m_activeTerminal = terminal;
     emit activeTerminalChanged(terminal);
+    
+    // Ensure the VT100Terminal gets focus for keyboard input
+    if (terminal) {
+        terminal->focusTerminal();
+    }
 }
 
 void TerminalSplitWidget::splitTerminal(Qt::Orientation orientation)

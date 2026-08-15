@@ -136,11 +136,9 @@ void VT100Parser::processEscapeSequence(QChar ch)
         case '8':  // DECRC - Restore Cursor
             emit restoreCursor();
             break;
-        case '=':  // DECKPAM - Keypad Application Mode
-            emit setPrivateMode(1, true);
+        case '=':  // DECKPAM - Keypad Application Mode (numeric keypad only, not DECCKM)
             break;
-        case '>':  // DECKPNM - Keypad Numeric Mode
-            emit setPrivateMode(1, false);
+        case '>':  // DECKPNM - Keypad Numeric Mode (numeric keypad only, not DECCKM)
             break;
         case 'c':  // RIS - Reset to Initial State
             emit resetTextAttributes();

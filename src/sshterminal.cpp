@@ -25,6 +25,7 @@ SSHTerminal::SSHTerminal(const ServerConfig &config, QWidget *parent)
     , m_reconnectAttempts(0)
     , m_terminal(new VT100Terminal(this))
     , m_inEscapeSequence(false)
+    , m_sizeSyncTimer(new QTimer(this))
 {
     ui->setupUi(this);
     
@@ -43,6 +44,12 @@ SSHTerminal::SSHTerminal(const ServerConfig &config, QWidget *parent)
     // Connect new terminal input
     connect(m_terminal, &VT100Terminal::keyPressed, this, &SSHTerminal::onTerminalKeyPressed);
     connect(m_terminal, &VT100Terminal::terminalSizeChanged, this, &SSHTerminal::onTerminalSizeChanged);
+    
+    // Keep retrying to sync the remote terminal size after connect. The remote
+    // shell may not be ready when the first attempt is made, and connection
+    // detection based on the prompt ($#>) can be missed with custom prompts.
+    m_sizeSyncTimer->setInterval(500);
+    connect(m_sizeSyncTimer, &QTimer::timeout, this, &SSHTerminal::onSizeSyncTimeout);
 }
 
 SSHTerminal::~SSHTerminal()
@@ -115,6 +122,9 @@ void SSHTerminal::connectToServer()
     m_process->setProcessEnvironment(env);
 
     m_process->start("ssh", args);
+
+    // Retry sending the terminal size until the remote shell accepts it
+    m_sizeSyncTimer->start();
     
     if (m_config.authType() == AuthType::Password && !m_config.password().isEmpty()) {
         // Don't auto-answer if the password is still encrypted (master password locked)
@@ -158,6 +168,7 @@ void SSHTerminal::disconnectFromServer()
 {
     m_userClosed = true;
     m_reconnectScheduled = false;
+    m_sizeSyncTimer->stop();
     if (m_process->state() == QProcess::Running) {
         m_process->write("exit\n");
         m_process->waitForFinished(1000);
@@ -252,6 +263,8 @@ void SSHTerminal::onReadyReadStandardOutput()
         m_connected = true;
         m_reconnectAttempts = 0;
         emit connectionStateChanged(true);
+        // Sync terminal size once the shell is at a prompt
+        sendTerminalSize();
     }
     
     writeLog(output);
@@ -279,6 +292,7 @@ void SSHTerminal::onReadyReadStandardError()
 
 void SSHTerminal::onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
+    m_sizeSyncTimer->stop();
     m_connected = false;
     emit connectionStateChanged(false);
     stopSessionLog();
@@ -332,6 +346,11 @@ void SSHTerminal::onInputReturnPressed()
     }
 }
 
+void SSHTerminal::focusTerminal()
+{
+    m_terminal->setFocus();
+}
+
 void SSHTerminal::onTerminalKeyPressed(const QByteArray &data)
 {
     if (m_process->state() == QProcess::Running) {
@@ -367,18 +386,36 @@ void SSHTerminal::onTerminalKeyPressed(const QByteArray &data)
 
 void SSHTerminal::onTerminalSizeChanged(int rows, int columns)
 {
-    if (m_process->state() == QProcess::Running) {
-        // Unfortunately, QProcess doesn't provide a way to signal WINCH to the PTY easily
-        // But we can try to send a command if we are in a shell, 
-        // OR better, we can use the 'stty' command if the platform supports it.
-        // However, the most reliable way for now is to send the SIGWINCH to the process itself.
-        // On Linux, the 'ssh' client will catch SIGWINCH and send a window-change request.
-        
-        // Use kill to send SIGWINCH (28)
-#ifdef Q_OS_LINUX
-        ::kill(m_process->processId(), 28);
-#endif
+    Q_UNUSED(rows)
+    Q_UNUSED(columns)
+    sendTerminalSize();
+}
+
+void SSHTerminal::onSizeSyncTimeout()
+{
+    sendTerminalSize();
+}
+
+void SSHTerminal::sendTerminalSize()
+{
+    if (m_process->state() != QProcess::Running) {
+        return;
     }
+    if (m_terminal->useAlternateBuffer()) {
+        return;
+    }
+    int rows = m_terminal->terminalRows();
+    int cols = m_terminal->terminalColumns();
+    if (rows <= 0 || cols <= 0) {
+        return;
+    }
+    if (rows == m_lastSentRows && cols == m_lastSentCols) {
+        return;
+    }
+    m_lastSentRows = rows;
+    m_lastSentCols = cols;
+    QByteArray cmd = QString("stty rows %1 cols %2\n").arg(rows).arg(cols).toUtf8();
+    m_process->write(cmd);
 }
 
 void SSHTerminal::startSessionLog()
