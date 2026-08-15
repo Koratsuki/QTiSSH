@@ -10,6 +10,8 @@ jobs:
   package:
     name: Build DEB and RPM
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     env:
       QT_VERSION: 6.7.2
       QT_MODULES: qtcharts
