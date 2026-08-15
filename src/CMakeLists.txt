@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(QTiSSH VERSION 0.1 LANGUAGES CXX)
+project(QTiSSH VERSION 0.1.4 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -162,6 +162,59 @@ install(TARGETS QTiSSH
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
+# Desktop entry
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../packaging/qtissh.desktop
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+
+# Application icon (hicolor + pixmaps fallback)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../img/icon.png
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/512x512/apps
+    RENAME qtissh.png)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../img/icon.png
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/pixmaps
+    RENAME qtissh.png)
+
+# ---------------------------------------------------------------------------
+# Packaging: DEB and RPM via CPack
+# ---------------------------------------------------------------------------
+set(CPACK_PACKAGE_NAME "qtissh")
+set(CPACK_PACKAGE_VENDOR "Koratsuki")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Qt SSH Connection Manager")
+set(CPACK_PACKAGE_DESCRIPTION
+    "A modern, user-friendly SSH connection manager built with Qt. "
+    "Manage multiple SSH connections with ease using a tabbed interface, "
+    "including an SFTP file browser, terminal emulator, tunnels and more.")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/Koratsuki/QTiSSH")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_PACKAGE_CONTACT "Koratsuki")
+set(CPACK_PACKAGE_LICENSE "MIT")
+set(CPACK_GENERATOR "DEB;RPM")
+set(CPACK_PACKAGING_INSTALL_PREFIX "/usr")
+
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Koratsuki <koratsuki@users.noreply.github.com>")
+set(CPACK_DEBIAN_PACKAGE_SECTION "net")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS
+    "libqt6core6 | libqt6core6t64 (>= 6.2), \
+     libqt6gui6 | libqt6gui6t64 (>= 6.2), \
+     libqt6widgets6 | libqt6widgets6t64 (>= 6.2), \
+     libqt6network6 | libqt6network6t64 (>= 6.2), \
+     libqt6dbus6 | libqt6dbus6t64 (>= 6.2), \
+     libqt6charts6, \
+     libssl3 | libssl3t64, \
+     libx11-6, \
+     openssh-client")
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS OFF)
+
+set(CPACK_RPM_PACKAGE_LICENSE "MIT")
+set(CPACK_RPM_PACKAGE_GROUP "Applications/Internet")
+set(CPACK_RPM_PACKAGE_REQUIRES
+    "qt6-qtbase >= 6.2, qt6-qtbase-gui, qt6-qtcharts, \
+     openssl-libs, libX11, openssh-clients")
+set(CPACK_RPM_PACKAGE_AUTOREQ OFF)
+set(CPACK_RPM_PACKAGE_AUTOPROV OFF)
+
+include(CPack)
 
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(QTiSSH)

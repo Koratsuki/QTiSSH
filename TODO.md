@@ -54,3 +54,4 @@ Pending tasks:
 - [x] Server Search - Quick search/filter servers by name, tags, groups
 - [x] Network Discovery - Scan local network for SSH servers (port 22)
 - [x] Recent Connections - Quick access to recently used servers (last 15)
+

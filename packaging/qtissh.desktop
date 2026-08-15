@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=QTiSSH
+GenericName=SSH Connection Manager
+Comment=Manage multiple SSH connections with ease
+Exec=QTiSSH
+Icon=qtissh
+Terminal=false
+Categories=Network;FileTransfer;System;Utility;
+Keywords=ssh;sftp;terminal;remote;
