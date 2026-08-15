@@ -187,12 +187,12 @@ set(CPACK_PACKAGE_DESCRIPTION
     "including an SFTP file browser, terminal emulator, tunnels and more.")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/Koratsuki/QTiSSH")
 set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
-set(CPACK_PACKAGE_CONTACT "Koratsuki")
+set(CPACK_PACKAGE_CONTACT "Koratsuki <koratsuki.nijuusan@gmail.com>")
 set(CPACK_PACKAGE_LICENSE "MIT")
 set(CPACK_GENERATOR "DEB;RPM")
 set(CPACK_PACKAGING_INSTALL_PREFIX "/usr")
 
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Koratsuki <koratsuki@users.noreply.github.com>")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Koratsuki <koratsuki.nijuusan@gmail.com>")
 set(CPACK_DEBIAN_PACKAGE_SECTION "net")
 set(CPACK_DEBIAN_PACKAGE_DEPENDS
     "libqt6core6 | libqt6core6t64 (>= 6.2), \
