@@ -39,17 +39,17 @@ jobs:
       - name: Install OpenSSL
         run: choco install openssl -y
 
-      - name: Find OpenSSL path
+      - name: Show OpenSSL install
         shell: bash
         run: |
-          for dir in "/c/Program Files/OpenSSL-Win64" "/c/Program Files/OpenSSL"; do
-            if [ -d "$dir" ]; then
-              echo "OPENSSL_ROOT_DIR=$dir" >> "$GITHUB_ENV"
-              exit 0
-            fi
-          done
-          echo "ERROR: OpenSSL not found"
-          exit 1
+          echo "=== Checking common OpenSSL paths ==="
+          ls -la "/c/Program Files/" | grep -i openssl || true
+          ls -la "/c/Program Files/OpenSSL-Win64/" || true
+          ls -la "/c/Program Files/OpenSSL-Win64/lib/" || true
+          ls -la "/c/Program Files/OpenSSL-Win64/include/" || true
+          # Also check choco lib
+          find "/c/ProgramData/chocolatey" -name "libssl*" 2>/dev/null || true
+          find "/c/ProgramData/chocolatey" -name "libcrypto*" 2>/dev/null || true
 
       - name: Extract version from tag
         id: version
@@ -63,11 +63,9 @@ jobs:
           fi
 
       - name: Configure
+        shell: cmd
         run: |
-          cmake -S src -B build `
-            -G Ninja `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
+          cmake -S src -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="%Qt6_DIR%" -DOPENSSL_ROOT_DIR="C:\Program Files\OpenSSL-Win64"
 
       - name: Build
         run: cmake --build build
