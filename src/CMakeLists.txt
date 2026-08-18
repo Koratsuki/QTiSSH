@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(QTiSSH VERSION 0.1.4 LANGUAGES CXX)
+project(QTiSSH VERSION 0.1.5 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -9,8 +9,9 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network DBus Charts)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network DBus Charts)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network Charts)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network Charts)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS DBus QUIET)
 find_package(OpenSSL REQUIRED)
 
 # Translations: regenerate .qm from .ts at configure time when lrelease is available.
@@ -134,7 +135,13 @@ else()
     endif()
 endif()
 
-target_link_libraries(QTiSSH PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::DBus Qt${QT_VERSION_MAJOR}::Charts OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(QTiSSH PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Charts OpenSSL::SSL OpenSSL::Crypto)
+
+if(Qt${QT_VERSION_MAJOR}DBus_FOUND)
+    target_link_libraries(QTiSSH PRIVATE Qt${QT_VERSION_MAJOR}::DBus)
+else()
+    target_compile_definitions(QTiSSH PRIVATE QT_NO_DBUS)
+endif()
 
 if(UNIX AND NOT APPLE)
     find_package(X11 REQUIRED)

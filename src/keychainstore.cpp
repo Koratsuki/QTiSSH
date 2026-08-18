@@ -1,4 +1,7 @@
 #include "keychainstore.h"
+
+#ifndef QT_NO_DBUS
+
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QDBusInterface>
@@ -196,3 +199,12 @@ bool KeychainStore::remove(const QString &key)
     }
     return true;
 }
+
+#else // QT_NO_DBUS
+
+bool KeychainStore::isAvailable() { return false; }
+bool KeychainStore::store(const QString &, const QString &) { return false; }
+QString KeychainStore::retrieve(const QString &) { return QString(); }
+bool KeychainStore::remove(const QString &) { return false; }
+
+#endif // QT_NO_DBUS
