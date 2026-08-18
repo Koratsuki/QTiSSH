@@ -11,7 +11,7 @@ on:
 jobs:
   build-windows:
     name: Build Windows
-    runs-on: windows-latest
+    runs-on: windows-2022
     permissions:
       contents: write
     env:
@@ -20,6 +20,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install Ninja
+        run: choco install ninja -y
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
@@ -58,18 +66,18 @@ jobs:
       - name: Configure
         run: |
           cmake -S src -B build `
-            -G "Visual Studio 17 2022" `
-            -A x64 `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}" `
             -DOPENSSL_ROOT_DIR="${{ steps.openssl.outputs.OPENSSL_ROOT_DIR }}"
 
       - name: Build
-        run: cmake --build build --config Release
+        run: cmake --build build
 
       - name: Rename binary
         shell: bash
         run: |
-          cp build/Release/QTiSSH.exe "QTiSSH-v${{ steps.version.outputs.VERSION }}-x86_64.exe"
+          cp build/QTiSSH.exe "QTiSSH-v${{ steps.version.outputs.VERSION }}-x86_64.exe"
 
       - name: Show packages
         run: Get-ChildItem -Filter *.exe | Select-Object Name, Length
