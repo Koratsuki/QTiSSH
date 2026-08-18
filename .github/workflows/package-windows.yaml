@@ -31,6 +31,20 @@ jobs:
       - name: Install OpenSSL
         run: choco install openssl -y
 
+      - name: Find OpenSSL path
+        id: openssl
+        shell: bash
+        run: |
+          # chocolatey installs OpenSSL to Program Files
+          for dir in "/c/Program Files/OpenSSL-Win64" "/c/Program Files/OpenSSL"; do
+            if [ -d "$dir" ]; then
+              echo "OPENSSL_ROOT_DIR=$dir" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          done
+          echo "ERROR: OpenSSL not found"
+          exit 1
+
       - name: Extract version from tag
         id: version
         shell: bash
@@ -47,7 +61,8 @@ jobs:
           cmake -S src -B build `
             -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
+            -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}" `
+            -DOPENSSL_ROOT_DIR="${{ steps.openssl.outputs.OPENSSL_ROOT_DIR }}"
 
       - name: Build
         run: cmake --build build
