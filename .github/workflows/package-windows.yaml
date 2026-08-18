@@ -35,7 +35,6 @@ jobs:
         id: openssl
         shell: bash
         run: |
-          # chocolatey installs OpenSSL to Program Files
           for dir in "/c/Program Files/OpenSSL-Win64" "/c/Program Files/OpenSSL"; do
             if [ -d "$dir" ]; then
               echo "OPENSSL_ROOT_DIR=$dir" >> $GITHUB_OUTPUT
@@ -59,18 +58,18 @@ jobs:
       - name: Configure
         run: |
           cmake -S src -B build `
-            -G Ninja `
-            -DCMAKE_BUILD_TYPE=Release `
+            -G "Visual Studio 17 2022" `
+            -A x64 `
             -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}" `
             -DOPENSSL_ROOT_DIR="${{ steps.openssl.outputs.OPENSSL_ROOT_DIR }}"
 
       - name: Build
-        run: cmake --build build
+        run: cmake --build build --config Release
 
       - name: Rename binary
         shell: bash
         run: |
-          cp build/QTiSSH.exe "QTiSSH-v${{ steps.version.outputs.VERSION }}-x86_64.exe"
+          cp build/Release/QTiSSH.exe "QTiSSH-v${{ steps.version.outputs.VERSION }}-x86_64.exe"
 
       - name: Show packages
         run: Get-ChildItem -Filter *.exe | Select-Object Name, Length
