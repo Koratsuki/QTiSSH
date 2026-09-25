@@ -73,6 +73,7 @@ private:
     QString m_outputBuffer;
     QByteArray m_inputBuffer;
     bool m_inEscapeSequence;
+    bool m_escapeHasIntroducer;
     int m_lastSentRows = 0;
     int m_lastSentCols = 0;
     QTimer *m_sizeSyncTimer;

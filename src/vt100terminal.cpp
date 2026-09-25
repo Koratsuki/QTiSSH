@@ -30,6 +30,7 @@ VT100Terminal::VT100Terminal(QWidget *parent)
     , m_hasSelection(false)
     , m_selecting(false)
     , m_scrollOffset(0)
+    , m_lastHistorySize(0)
     , m_hasFocus(false)
     , m_appCursorKeys(false)
 {
@@ -199,13 +200,16 @@ void VT100Terminal::updateScrollBar()
 {
     if (!m_screen) return;
     
-    int historySize = m_screen->historySize();
-    int screenRows = m_screen->rows();
+    int maxOffset = maxScrollOffset();
     
-    m_scrollBar->setRange(0, historySize);
-    m_scrollBar->setPageStep(screenRows);
+    m_scrollBar->setRange(0, maxOffset);
+    m_scrollBar->setPageStep(visibleRowCount());
     m_scrollBar->setSingleStep(1);
-    m_scrollBar->setValue(historySize - m_scrollOffset);
+    // Terminals scroll up towards older output, so the slider grows downwards.
+    m_scrollBar->setValue(maxOffset - m_scrollOffset);
+    // The bar keeps its place in the layout, it just goes inert when there is
+    // nothing to scroll back to.
+    m_scrollBar->setEnabled(maxOffset > 0);
 }
 
 void VT100Terminal::writeData(const QByteArray &data)
@@ -227,6 +231,7 @@ void VT100Terminal::clear()
     if (m_screen) {
         m_screen->clear();
         m_scrollOffset = 0;
+        m_lastHistorySize = 0;
         updateScrollBar();
         update();
     }
@@ -330,7 +335,12 @@ void VT100Terminal::setScrollOffset(int offset)
 
 int VT100Terminal::maxScrollOffset() const
 {
-    return m_screen ? m_screen->historySize() : 0;
+    if (!m_screen) {
+        return 0;
+    }
+    
+    // Enough to walk back to the oldest scrollback line, and no further.
+    return qMax(0, historyLineCount() + m_screen->rows() - visibleRowCount());
 }
 
 void VT100Terminal::setColorScheme(const QColor &foreground, const QColor &background)
@@ -362,9 +372,25 @@ void VT100Terminal::paintEvent(QPaintEvent *event)
     // Fill background
     painter.fillRect(rect(), m_defaultBackground);
     
+    // Draw the scrollback lines filling the top of the viewport, oldest first.
+    const int historyShown = visibleHistoryCount();
+    if (historyShown > 0) {
+        const int firstHistory = historyLineCount() - historyShown;
+        for (int i = 0; i < historyShown; ++i) {
+            const QVector<TerminalChar> line = m_screen->getHistoryLine(firstHistory + i);
+            const int y = i * m_charHeight;
+            for (int col = 0; col < line.size() && col < m_screen->columns(); ++col) {
+                const QRect charRect(col * m_charWidth, y, m_charWidth, m_charHeight);
+                if (charRect.intersects(event->rect())) {
+                    drawCharacter(painter, -1, col, line[col], charRect);
+                }
+            }
+        }
+    }
+    
     // Calculate visible area
     const int firstRow = firstVisibleRow();
-    const int lastRow = qMin(m_screen->rows() - 1, firstRow + visibleRowCount() - 1);
+    const int lastRow = qMin(m_screen->rows() - 1, firstRow + visibleRowCount() - historyShown - 1);
     
     // Draw characters
     for (int row = firstRow; row <= lastRow; ++row) {
@@ -397,24 +423,47 @@ int VT100Terminal::visibleRowCount() const
     return qMax(1, height() / m_charHeight);
 }
 
+int VT100Terminal::historyLineCount() const
+{
+    return m_screen ? m_screen->historySize() : 0;
+}
+
+int VT100Terminal::topVisibleLine() const
+{
+    if (!m_screen) {
+        return 0;
+    }
+    
+    // Lines are counted in one continuous space: the scrollback comes first,
+    // oldest at line 0, and the live screen follows it. The last line of that
+    // space is the live bottom of the screen, so scrolling up means moving the
+    // window over older lines.
+    const int lastLine = historyLineCount() + m_screen->rows() - 1;
+    return lastLine - m_scrollOffset - visibleRowCount() + 1;
+}
+
+int VT100Terminal::visibleHistoryCount() const
+{
+    // How many scrollback lines fill the top of the viewport before the live
+    // screen starts.
+    return qBound(0, historyLineCount() - topVisibleLine(), historyLineCount());
+}
+
 int VT100Terminal::firstVisibleRow() const
 {
     if (!m_screen) {
         return 0;
     }
     
-    // The viewport is anchored to the live bottom of the buffer, not to its
-    // top: new output always lands on the last row, so that row is the one
-    // that has to be on screen. Without this, a buffer taller than the widget
-    // scrolls its live area off the bottom and the display freezes.
-    const int first = m_screen->rows() - visibleRowCount() - m_scrollOffset;
-    return qBound(0, first, qMax(0, m_screen->rows() - 1));
+    // The live row shown right below the scrollback lines, so the bottom of
+    // the screen is what stays anchored when new output arrives.
+    return qMax(0, topVisibleLine() - historyLineCount());
 }
 
 QRect VT100Terminal::getCharacterRect(int row, int column) const
 {
     int x = column * m_charWidth;
-    int y = (row - firstVisibleRow()) * m_charHeight;
+    int y = (visibleHistoryCount() + row - firstVisibleRow()) * m_charHeight;
     return QRect(x, y, m_charWidth, m_charHeight);
 }
 
@@ -512,8 +561,14 @@ QFont VT100Terminal::getCharacterFont(TextAttributes attributes) const
 void VT100Terminal::onTextReceived(const QString &text)
 {
     if (m_screen) {
+        // Stay where the reader is: only follow new output when the live
+        // bottom was already on screen, otherwise reading the scrollback would
+        // be interrupted by every chunk that arrives.
+        const bool wasAtBottom = (m_scrollOffset == 0);
         m_screen->insertText(text);
-        scrollToBottom();  // Auto-scroll to bottom when new text arrives
+        if (wasAtBottom) {
+            scrollToBottom();
+        }
     }
 }
 
@@ -532,6 +587,21 @@ void VT100Terminal::onCursorVisibilityChanged(bool visible)
 void VT100Terminal::onScreenChanged(const QRect &region)
 {
     Q_UNUSED(region)
+    
+    // Keep the reader's place: every line pushed into the scrollback grows the
+    // distance between the view and the live bottom, so the offset has to grow
+    // with it. Without this, output arriving off screen would drag the
+    // scrollback one line down on every chunk. Only for a view that is already
+    // scrolled up: sitting at the bottom has to keep following the output.
+    if (m_screen) {
+        const int grown = m_screen->historySize() - m_lastHistorySize;
+        m_lastHistorySize = m_screen->historySize();
+        if (m_scrollOffset > 0) {
+            m_scrollOffset = qBound(0, m_scrollOffset + grown, maxScrollOffset());
+        }
+    }
+    
+    updateScrollBar();
     update();  // For now, just update the entire widget
 }
 
@@ -551,8 +621,7 @@ void VT100Terminal::onCursorBlink()
 void VT100Terminal::onScrollBarValueChanged(int value)
 {
     if (m_screen) {
-        int historySize = m_screen->historySize();
-        setScrollOffset(historySize - value);
+        setScrollOffset(maxScrollOffset() - value);
     }
 }
 

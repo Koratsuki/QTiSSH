@@ -172,6 +172,9 @@ private:
     QPoint positionToPixel(const CursorPosition &position) const;
     int visibleRowCount() const;
     int firstVisibleRow() const;
+    int topVisibleLine() const;
+    int visibleHistoryCount() const;
+    int historyLineCount() const;
     
     // Selection
     void updateSelection(const QPoint &pos);
@@ -217,6 +220,7 @@ private:
     
     // Scrolling
     int m_scrollOffset;  // Number of lines scrolled up from bottom
+    int m_lastHistorySize;
     
     // Terminal state
     bool m_hasFocus;

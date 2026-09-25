@@ -25,6 +25,7 @@ SSHTerminal::SSHTerminal(const ServerConfig &config, QWidget *parent)
     , m_reconnectAttempts(0)
     , m_terminal(new VT100Terminal(this))
     , m_inEscapeSequence(false)
+    , m_escapeHasIntroducer(false)
     , m_sizeSyncTimer(new QTimer(this))
 {
     ui->setupUi(this);
@@ -374,9 +375,23 @@ void SSHTerminal::onTerminalKeyPressed(const QByteArray &data)
             m_inputBuffer = line.toUtf8();
         } else if (c == '\x1b') {
             m_inEscapeSequence = true;
+            m_escapeHasIntroducer = false;
         } else if (m_inEscapeSequence) {
-            if (c >= 0x40 && c <= 0x7e) {
-                m_inEscapeSequence = false;
+            // ECMA-48: ESC is followed by an introducer, then parameters and
+            // intermediates, then one final byte. Arrow keys are ESC [ A, so
+            // treating every byte as the end would capture that final letter as
+            // typed text and corrupt the command being recorded.
+            if (!m_escapeHasIntroducer) {
+                m_escapeHasIntroducer = (c == '[' || c == ']' || c == 'P' ||
+                                         c == 'X' || c == '^' || c == '_' ||
+                                         c == 'O');
+                if (!m_escapeHasIntroducer) {
+                    m_inEscapeSequence = false;  // two byte sequence, done
+                }
+            } else if (c >= 0x40 && c <= 0x7e) {
+                m_inEscapeSequence = false;  // final byte, sequence complete
+            } else if (c == 0x07) {
+                m_inEscapeSequence = false;  // BEL closes an OSC sequence
             }
         } else if (c >= 0x20 && c != 0x7f) {
             m_inputBuffer.append(c);
