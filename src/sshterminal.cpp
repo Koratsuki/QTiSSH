@@ -69,16 +69,25 @@ SSHTerminal::~SSHTerminal()
 
 void SSHTerminal::connectToServer()
 {
-    if (m_connected) {
+    if (isSessionActive()) {
         return;
     }
 
+    // Reusing a terminal whose previous session ended (the user ran "exit", the
+    // link dropped, or it was disconnected from the tab context menu) starts a
+    // brand new ssh process, so the state of the old one has to be cleared.
+    m_userClosed = false;
+    m_reconnectScheduled = false;
+    m_waitingForPassword = false;
+    m_lastSentRows = 0;
+    m_lastSentCols = 0;
+
     startSessionLog();
     QString sshCommand = buildSSHCommand();
-    ui->terminal->appendPlainText(QString("Connecting to %1@%2:%3...")
-                                .arg(m_config.username())
-                                .arg(m_config.host())
-                                .arg(m_config.port()));
+    m_terminal->writeData(QString("\r\n\x1b[2m--- Connecting to %1@%2:%3... ---\x1b[0m\r\n")
+                         .arg(m_config.username())
+                         .arg(m_config.host())
+                         .arg(m_config.port()));
 
     QStringList args;
     args << "-p" << QString::number(m_config.port());
@@ -135,6 +144,13 @@ void SSHTerminal::connectToServer()
     }
 }
 
+void SSHTerminal::reconnect()
+{
+    // A deliberate retry deserves the full set of automatic retries again.
+    m_reconnectAttempts = 0;
+    connectToServer();
+}
+
 QStringList SSHTerminal::buildTunnelArguments() const
 {
     QStringList args;
@@ -179,6 +195,7 @@ void SSHTerminal::disconnectFromServer()
     }
     m_connected = false;
     stopSessionLog();
+    m_terminal->writeData(QString("\r\n\x1b[2m--- Disconnected ---  [right-click tab to reconnect]\x1b[0m\r\n"));
     emit connectionStateChanged(false);
 }
 
@@ -299,9 +316,11 @@ void SSHTerminal::onProcessFinished(int exitCode, QProcess::ExitStatus exitStatu
     stopSessionLog();
 
     if (exitStatus == QProcess::CrashExit) {
-        ui->terminal->appendPlainText("\n\nConnection crashed!");
+        m_terminal->writeData(QString("\r\n\x1b[2m--- Connection crashed! ---\x1b[0m\r\n"));
     } else {
-        ui->terminal->appendPlainText(QString("\n\nConnection closed (exit code: %1)").arg(exitCode));
+        m_terminal->writeData(QString("\r\n\x1b[2m--- Connection closed (exit code: %1) ---"
+                                      "  [right-click tab to reconnect]\x1b[0m\r\n")
+                                  .arg(exitCode));
     }
 
     if (m_config.autoReconnect() && !m_userClosed && !m_reconnectScheduled) {
@@ -333,7 +352,7 @@ void SSHTerminal::onProcessError(QProcess::ProcessError error)
             break;
     }
     
-    ui->terminal->appendPlainText("ERROR: " + errorMsg);
+    m_terminal->writeData(QString("\r\n\x1b[1;31mERROR: ") + errorMsg + "\x1b[0m\r\n");
     emit errorOccurred(errorMsg);
 }
 
@@ -457,13 +476,13 @@ void SSHTerminal::writeLog(const QString &text)
 void SSHTerminal::scheduleAutoReconnect()
 {
     if (m_reconnectAttempts >= 3) {
-        ui->terminal->appendPlainText(tr("Auto-reconnect limit reached. Giving up."));
+        m_terminal->writeData(tr("\r\nAuto-reconnect limit reached. Giving up.\r\n"));
         return;
     }
     m_reconnectAttempts++;
     m_reconnectScheduled = true;
-    ui->terminal->appendPlainText(
-        tr("\nReconnecting in 3 seconds (attempt %1/3)...").arg(m_reconnectAttempts));
+    m_terminal->writeData(
+        tr("\r\nReconnecting in 3 seconds (attempt %1/3)...\r\n").arg(m_reconnectAttempts));
 
     QTimer::singleShot(3000, this, [this]() {
         m_reconnectScheduled = false;

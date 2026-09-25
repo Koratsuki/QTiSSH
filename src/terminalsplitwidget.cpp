@@ -76,6 +76,26 @@ SSHTerminal *TerminalSplitWidget::terminalAt(int index) const
     return m_terminals.value(index, nullptr);
 }
 
+bool TerminalSplitWidget::hasActiveTerminal() const
+{
+    for (SSHTerminal *terminal : m_terminals) {
+        if (terminal->isSessionActive()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool TerminalSplitWidget::hasIdleTerminal() const
+{
+    for (SSHTerminal *terminal : m_terminals) {
+        if (!terminal->isSessionActive()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void TerminalSplitWidget::setActive(SSHTerminal *terminal)
 {
     if (m_activeTerminal == terminal) {
@@ -122,6 +142,13 @@ void TerminalSplitWidget::connectToServer()
 {
     for (SSHTerminal *terminal : m_terminals) {
         terminal->connectToServer();
+    }
+}
+
+void TerminalSplitWidget::reconnectAll()
+{
+    for (SSHTerminal *terminal : m_terminals) {
+        terminal->reconnect();
     }
 }
 

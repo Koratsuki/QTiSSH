@@ -45,6 +45,7 @@ private slots:
     void onConnectSftpClicked();
     void onServerDoubleClicked(const ServerConfig &server);
     void onTabCloseRequested(int index);
+    void onTabContextMenuRequested(const QPoint &pos);
     void onServersChanged();
     void onAboutClicked();
     void onThemeToggleClicked();
@@ -128,6 +129,10 @@ private:
     SSHTerminal *currentTerminal() const;
     void promptUnlockPasswords();
     void updateTerminalTabTitle(QWidget *tabWidget, const QString &baseTitle);
+    void reconnectTab(QWidget *widget);
+    void disconnectTab(QWidget *widget);
+    static bool isTabActive(QWidget *widget);
+    static bool isTabIdle(QWidget *widget);
     void writeSession();
     void restoreSession();
     void promptRestoreSession();

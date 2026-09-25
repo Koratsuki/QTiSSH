@@ -48,6 +48,7 @@
 #include <QStandardPaths>
 #include <QActionGroup>
 #include <QApplication>
+#include <QTabBar>
 
 #ifndef QTISSH_VERSION
 #  define QTISSH_VERSION "0.0.0"
@@ -140,6 +141,11 @@ void MainWindow::setupUI()
     
     // Connect tab widget signals
     connect(m_tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::onTabCloseRequested);
+
+    // Right-clicking a tab exposes session actions (reconnect, disconnect, close)
+    m_tabWidget->tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_tabWidget->tabBar(), &QTabBar::customContextMenuRequested,
+            this, &MainWindow::onTabContextMenuRequested);
     
     // Connect menu actions (defined in UI file)
     connect(ui->actionAddServer, &QAction::triggered, this, &MainWindow::onAddServerClicked);
@@ -764,6 +770,86 @@ void MainWindow::connectToServerById(const QString &serverId)
     }
 }
 
+bool MainWindow::isTabActive(QWidget *widget)
+{
+    if (auto *split = qobject_cast<TerminalSplitWidget*>(widget)) {
+        return split->hasActiveTerminal();
+    } else if (auto *terminal = qobject_cast<SSHTerminal*>(widget)) {
+        return terminal->isSessionActive();
+    } else if (auto *sftpBrowser = qobject_cast<SFTPBrowser*>(widget)) {
+        return sftpBrowser->isConnected();
+    }
+    return false;
+}
+
+bool MainWindow::isTabIdle(QWidget *widget)
+{
+    if (auto *split = qobject_cast<TerminalSplitWidget*>(widget)) {
+        return split->hasIdleTerminal();
+    } else if (auto *terminal = qobject_cast<SSHTerminal*>(widget)) {
+        return !terminal->isSessionActive();
+    } else if (auto *sftpBrowser = qobject_cast<SFTPBrowser*>(widget)) {
+        return !sftpBrowser->isConnected();
+    }
+    return false;
+}
+
+void MainWindow::reconnectTab(QWidget *widget)
+{
+    if (auto *split = qobject_cast<TerminalSplitWidget*>(widget)) {
+        // Terminals that are still up keep their session; only the dead ones
+        // are restarted, since reconnect() is a no-op for those.
+        split->reconnectAll();
+    } else if (auto *terminal = qobject_cast<SSHTerminal*>(widget)) {
+        terminal->reconnect();
+    } else if (auto *sftpBrowser = qobject_cast<SFTPBrowser*>(widget)) {
+        sftpBrowser->connectToServer();
+    }
+}
+
+void MainWindow::disconnectTab(QWidget *widget)
+{
+    if (auto *split = qobject_cast<TerminalSplitWidget*>(widget)) {
+        for (SSHTerminal *terminal : split->terminals()) {
+            terminal->disconnectFromServer();
+        }
+    } else if (auto *terminal = qobject_cast<SSHTerminal*>(widget)) {
+        terminal->disconnectFromServer();
+    } else if (auto *sftpBrowser = qobject_cast<SFTPBrowser*>(widget)) {
+        sftpBrowser->disconnectFromServer();
+    }
+}
+
+void MainWindow::onTabContextMenuRequested(const QPoint &pos)
+{
+    QTabBar *tabBar = m_tabWidget->tabBar();
+    int index = tabBar->tabAt(pos);
+    if (index <= 0) {
+        // The welcome tab at index 0 is not a session and cannot be closed.
+        return;
+    }
+
+    QWidget *widget = m_tabWidget->widget(index);
+    m_tabWidget->setCurrentIndex(index);
+
+    QMenu menu(this);
+    QAction *reconnectAction = menu.addAction(tr("🔄  Reconnect"));
+    reconnectAction->setEnabled(isTabIdle(widget));
+    QAction *disconnectAction = menu.addAction(tr("⏹  Disconnect"));
+    disconnectAction->setEnabled(isTabActive(widget));
+    menu.addSeparator();
+    QAction *closeAction = menu.addAction(tr("✕  Close Tab"));
+
+    QAction *chosen = menu.exec(tabBar->mapToGlobal(pos));
+    if (chosen == reconnectAction) {
+        reconnectTab(widget);
+    } else if (chosen == disconnectAction) {
+        disconnectTab(widget);
+    } else if (chosen == closeAction) {
+        onTabCloseRequested(index);
+    }
+}
+
 void MainWindow::onTabCloseRequested(int index)
 {
     // Don't close the welcome tab
@@ -773,21 +859,7 @@ void MainWindow::onTabCloseRequested(int index)
 
     QWidget *widget = m_tabWidget->widget(index);
 
-    bool isConnected = false;
-    if (auto *split = qobject_cast<TerminalSplitWidget*>(widget)) {
-        for (SSHTerminal *terminal : split->terminals()) {
-            if (terminal->isConnected()) {
-                isConnected = true;
-                break;
-            }
-        }
-    } else if (auto *terminal = qobject_cast<SSHTerminal*>(widget)) {
-        isConnected = terminal->isConnected();
-    } else if (auto *sftpBrowser = qobject_cast<SFTPBrowser*>(widget)) {
-        isConnected = sftpBrowser->isConnected();
-    }
-
-    if (isConnected) {
+    if (isTabActive(widget)) {
         QMessageBox::StandardButton reply = QMessageBox::question(this,
                                                                   tr("Close Connection"),
                                                                   tr("This connection is still active. Are you sure you want to close it?"),
@@ -796,15 +868,7 @@ void MainWindow::onTabCloseRequested(int index)
             return;
         }
 
-        if (auto *split = qobject_cast<TerminalSplitWidget*>(widget)) {
-            for (SSHTerminal *terminal : split->terminals()) {
-                terminal->disconnectFromServer();
-            }
-        } else if (auto *terminal = qobject_cast<SSHTerminal*>(widget)) {
-            terminal->disconnectFromServer();
-        } else if (auto *sftpBrowser = qobject_cast<SFTPBrowser*>(widget)) {
-            sftpBrowser->disconnectFromServer();
-        }
+        disconnectTab(widget);
     }
 
     m_tabWidget->removeTab(index);

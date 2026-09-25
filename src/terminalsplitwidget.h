@@ -34,10 +34,16 @@ public:
     int count() const { return m_terminals.size(); }
     ServerMonitoringBar *monitoringBar() const { return m_monitoringBar; }
 
+    // True when at least one terminal holds a live session (connected or still
+    // connecting); hasIdleTerminal() is its complement per terminal.
+    bool hasActiveTerminal() const;
+    bool hasIdleTerminal() const;
+
     void splitTerminal(Qt::Orientation orientation);
     void closeActiveTerminal();
     void closeTerminal(SSHTerminal *terminal);
     void connectToServer();
+    void reconnectAll();
 
     void applySettings(const QFont &font,
                        VT100Terminal::CursorStyle style,

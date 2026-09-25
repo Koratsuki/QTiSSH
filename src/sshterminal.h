@@ -21,6 +21,10 @@ public:
     void connectToServer();
     void disconnectFromServer();
     bool isConnected() const { return m_connected; }
+    // True while a session exists, either established or still being set up.
+    bool isSessionActive() const { return m_connected || m_process->state() != QProcess::NotRunning; }
+    // connectToServer() on a dead terminal, also granting a fresh auto-reconnect budget.
+    void reconnect();
     ServerConfig getServerConfig() const { return m_config; }
     void setUserClosed() { m_userClosed = true; }
 

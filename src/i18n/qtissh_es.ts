@@ -931,6 +931,21 @@ This will also delete all subfolders.</source>
         <source>Open an SSH terminal tab to execute the snippet.</source>
         <translation>Abre primero una pestaña de terminal SSH para ejecutar el fragmento.</translation>
     </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="836"/>
+        <source>🔄  Reconnect</source>
+        <translation>🔄  Reconectar</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="838"/>
+        <source>⏹  Disconnect</source>
+        <translation>⏹  Desconectar</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="841"/>
+        <source>✕  Close Tab</source>
+        <translation>✕  Cerrar pestaña</translation>
+    </message>
 </context>
 <context>
     <name>MonitoringDialog</name>

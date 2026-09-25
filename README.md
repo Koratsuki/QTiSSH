@@ -27,6 +27,7 @@ A modern, user-friendly SSH connection manager built with Qt. Manage multiple SS
 🎨 **Terminal Colors** - Customizable foreground/background terminal colors  
 ⚙️ **Custom SSH Options & Profiles** - Per-server options plus reusable named profiles  
 🔁 **Auto-reconnect** - Automatic reconnection after connection loss (max 3 attempts)  
+🔌 **Tab Context Menu** - Right-click a tab to reconnect, disconnect or close it  
 ✏️ **Remote File Editing** - Edit remote files locally with auto-sync (Ctrl+S, external-change detection)  
 📊 **Server Monitoring** - CPU load, memory, disk and top processes via SSH  
 🕵️ **Network Discovery** - Scan the local network for SSH servers (port 22)  
@@ -327,6 +328,21 @@ Only the two mandatory fields, with everything else defaulted:
 ### Closing Connections
 
 Click the **X** button on a tab to close the connection. If the connection is still active, you'll be prompted to confirm.
+
+### Reconnecting a Tab
+
+Running `exit` (or losing the link) leaves the tab open with a 🔴 title, so the
+scrollback stays readable. Right-click the tab to get back in without closing it:
+
+| Action | Availability |
+| --- | --- |
+| 🔄 **Reconnect** | Enabled while the tab has no live session. In a split tab, only the dead panes are restarted. |
+| ⏹ **Disconnect** | Enabled while a session is live. |
+| ✕ **Close Tab** | Always. Prompts first if a session is still active. |
+
+Reconnecting reuses the same tab and keeps the previous scrollback, appending a
+`--- Connecting to ... ---` banner. Works on terminal tabs (including splits)
+and SFTP tabs. The welcome tab is not a session, so it has no menu.
 
 ## Configuration
 
