@@ -51,26 +51,41 @@ void TerminalScreen::resize(int rows, int columns)
     QVector<QVector<TerminalChar>> oldScreen = (*m_currentScreen);
     int oldRows = m_rows;
     int oldColumns = m_columns;
+    CursorPosition oldCursor = m_cursorPos;
     
     // Update dimensions
     m_rows = rows;
     m_columns = columns;
+    m_scrollTop = 0;
     m_scrollBottom = rows - 1;
     
     // Reinitialize screen
     initializeScreen();
     
-    // Copy old content to new screen
-    int copyRows = qMin(oldRows, m_rows);
-    int copyColumns = qMin(oldColumns, m_columns);
+    // Copy old content, keeping the live rows at the bottom: when the screen
+    // grows the new blank lines go on top, and when it shrinks the oldest
+    // lines are the ones dropped. Otherwise the cursor would end up in the
+    // middle of the screen with blank lines below it.
+    int srcStart = 0;
+    int dstStart = 0;
+    if (rows > oldRows) {
+        dstStart = rows - oldRows;
+    } else {
+        srcStart = oldRows - rows;
+    }
+    
+    int copyRows = qMin(oldRows, rows);
+    int copyColumns = qMin(oldColumns, columns);
     
     for (int i = 0; i < copyRows; ++i) {
         for (int j = 0; j < copyColumns; ++j) {
-            (*m_currentScreen)[i][j] = oldScreen[i][j];
+            (*m_currentScreen)[dstStart + i][j] = oldScreen[srcStart + i][j];
         }
     }
     
-    // Ensure cursor is in bounds
+    // Move the cursor with the content, then ensure it is in bounds
+    m_cursorPos = CursorPosition(oldCursor.row + dstStart - srcStart,
+                                 oldCursor.column);
     ensureCursorInBounds();
     
     emit screenResized(m_rows, m_columns);
@@ -95,7 +110,19 @@ void TerminalScreen::setCursorPosition(const CursorPosition &pos)
 
 void TerminalScreen::moveCursor(int deltaRow, int deltaColumn)
 {
-    setCursorPosition(m_cursorPos.row + deltaRow, m_cursorPos.column + deltaColumn);
+    const int targetRow = m_cursorPos.row + deltaRow;
+    
+    // Moving down past the bottom of the scrolling region scrolls it, the way a
+    // real terminal does. Without this, a line feed arriving on the last row
+    // only clamps the cursor: the live row never gets pushed up, the text
+    // overwrites itself in place and the display looks frozen.
+    if (deltaRow > 0 && targetRow > m_scrollBottom) {
+        scrollUpInRegion(targetRow - m_scrollBottom);
+        setCursorPosition(m_scrollBottom, m_cursorPos.column + deltaColumn);
+        return;
+    }
+    
+    setCursorPosition(targetRow, m_cursorPos.column + deltaColumn);
 }
 
 void TerminalScreen::moveCursorToColumn(int column)
@@ -502,7 +529,9 @@ void TerminalScreen::ensureCursorInBounds()
 
 void TerminalScreen::addLineToHistory(const QVector<TerminalChar> &line)
 {
-    if (m_maxHistorySize <= 0) {
+    // The alternate screen is a full screen application (vim, less, ...): its
+    // scrolling is not scrollback, it must not be mixed with the session text.
+    if (m_maxHistorySize <= 0 || m_useAlternateBuffer) {
         return;
     }
     

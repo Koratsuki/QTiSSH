@@ -6,7 +6,7 @@
 # -------------------------------------------------
 TEMPLATE = app
 TARGET = QTiSSH
-VERSION = 0.1.7
+VERSION = 0.1.8
 
 DEFINES += QTISSH_VERSION=\\\"$$VERSION\\\"
 

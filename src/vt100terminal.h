@@ -47,6 +47,7 @@ public:
     int terminalRows() const;
     int terminalColumns() const;
     bool useAlternateBuffer() const;
+    const TerminalScreen *screen() const { return m_screen; }
     
 // Terminal operations
     void writeData(const QByteArray &data);
@@ -169,6 +170,8 @@ private:
     // Coordinate conversion
     CursorPosition pixelToPosition(const QPoint &pixel) const;
     QPoint positionToPixel(const CursorPosition &position) const;
+    int visibleRowCount() const;
+    int firstVisibleRow() const;
     
     // Selection
     void updateSelection(const QPoint &pos);

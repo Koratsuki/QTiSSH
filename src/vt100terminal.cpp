@@ -182,12 +182,13 @@ void VT100Terminal::updateTerminalSize()
 {
     if (!m_screen) return;
     
-    // Calculate required widget size
-    int requiredWidth = m_screen->columns() * m_charWidth + m_scrollBar->sizeHint().width();
-    int requiredHeight = m_screen->rows() * m_charHeight;
-    
-    // Update minimum size
-    setMinimumSize(requiredWidth, requiredHeight);
+    // Keep a small minimum only. Pinning it to the buffer size stops the
+    // layout from ever shrinking the widget, so the buffer would keep its old
+    // row count while the viewport shows fewer rows than that.
+    const QSize minimum(m_charWidth * 8, m_charHeight * 2);
+    if (minimumSize() != minimum) {
+        setMinimumSize(minimum);
+    }
     
     // Position scroll bar
     m_scrollBar->setGeometry(width() - m_scrollBar->sizeHint().width(), 0, 
@@ -353,8 +354,6 @@ void VT100Terminal::setDefaultColors(const QColor &foreground, const QColor &bac
 // Event handlers will be implemented in the next part due to size constraints
 void VT100Terminal::paintEvent(QPaintEvent *event)
 {
-    Q_UNUSED(event)
-    
     if (!m_screen) return;
     
     QPainter painter(this);
@@ -364,11 +363,11 @@ void VT100Terminal::paintEvent(QPaintEvent *event)
     painter.fillRect(rect(), m_defaultBackground);
     
     // Calculate visible area
-    int startRow = qMax(0, -m_scrollOffset);
-    int endRow = qMin(m_screen->rows() - 1, startRow + height() / m_charHeight);
+    const int firstRow = firstVisibleRow();
+    const int lastRow = qMin(m_screen->rows() - 1, firstRow + visibleRowCount() - 1);
     
     // Draw characters
-    for (int row = startRow; row <= endRow; ++row) {
+    for (int row = firstRow; row <= lastRow; ++row) {
         for (int col = 0; col < m_screen->columns(); ++col) {
             TerminalChar ch = m_screen->getChar(row, col);
             QRect charRect = getCharacterRect(row, col);
@@ -390,10 +389,32 @@ void VT100Terminal::paintEvent(QPaintEvent *event)
     }
 }
 
+int VT100Terminal::visibleRowCount() const
+{
+    if (m_charHeight <= 0) {
+        return 0;
+    }
+    return qMax(1, height() / m_charHeight);
+}
+
+int VT100Terminal::firstVisibleRow() const
+{
+    if (!m_screen) {
+        return 0;
+    }
+    
+    // The viewport is anchored to the live bottom of the buffer, not to its
+    // top: new output always lands on the last row, so that row is the one
+    // that has to be on screen. Without this, a buffer taller than the widget
+    // scrolls its live area off the bottom and the display freezes.
+    const int first = m_screen->rows() - visibleRowCount() - m_scrollOffset;
+    return qBound(0, first, qMax(0, m_screen->rows() - 1));
+}
+
 QRect VT100Terminal::getCharacterRect(int row, int column) const
 {
     int x = column * m_charWidth;
-    int y = (row + m_scrollOffset) * m_charHeight;
+    int y = (row - firstVisibleRow()) * m_charHeight;
     return QRect(x, y, m_charWidth, m_charHeight);
 }
 
