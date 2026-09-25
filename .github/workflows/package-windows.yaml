@@ -46,12 +46,12 @@ jobs:
         shell: bash
         run: |
           if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
-            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+            VERSION="${GITHUB_REF#refs/tags/v}"
           else
             VERSION=$(grep 'project(QTiSSH VERSION' src/CMakeLists.txt | sed 's/.*VERSION \([0-9.]*\).*/\1/')
-            echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
           fi
-          echo "PKG=QTiSSH-v${{ steps.version.outputs.VERSION }}-x86_64" >> $GITHUB_OUTPUT
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "PKG=QTiSSH-v${VERSION}-x86_64" >> $GITHUB_OUTPUT
 
       - name: Configure
         shell: cmd
@@ -146,6 +146,27 @@ jobs:
           name: qtissh-windows
           path: "*.zip"
           if-no-files-found: error
+
+      # A re-run of the same tag would otherwise pile up outdated zips on the
+      # release page, so drop the ones this workflow produced previously.
+      - name: Remove stale Windows release assets
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $json = gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/$env:GITHUB_REF_NAME" 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "Release $env:GITHUB_REF_NAME does not exist yet, nothing to clean."
+            exit 0
+          }
+          $assets = ($json | ConvertFrom-Json).assets |
+                    Where-Object { $_.name -like 'QTiSSH-v*-x86_64.zip' }
+          foreach ($a in $assets) {
+            Write-Host "Removing stale release asset: $($a.name)"
+            gh api -X DELETE "repos/$env:GITHUB_REPOSITORY/releases/assets/$($a.id)"
+            if ($LASTEXITCODE -ne 0) { throw "Failed to delete asset $($a.name)" }
+          }
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
