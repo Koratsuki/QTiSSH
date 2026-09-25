@@ -374,6 +374,36 @@ Click &apos;Add&apos; to add a new server.</source>
         <translation>Dividir</translation>
     </message>
     <message>
+        <location filename="../mainwindow.cpp" line="495"/>
+        <source>&amp;Appearance</source>
+        <translation>&amp;Apariencia</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="497"/>
+        <source>&amp;Toggle Light/Dark Theme</source>
+        <translation>&amp;Alternar tema claro/oscuro</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="506"/>
+        <source>&amp;Light Theme</source>
+        <translation>Tema &amp;claro</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="511"/>
+        <source>&amp;Dark Theme</source>
+        <translation>Tema &amp;oscuro</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="529"/>
+        <source>Switch to Light Theme</source>
+        <translation>Cambiar al tema claro</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="530"/>
+        <source>Switch to Dark Theme</source>
+        <translation>Cambiar al tema oscuro</translation>
+    </message>
+    <message>
         <location filename="../mainwindow.cpp" line="335"/>
         <source>Split &amp;Horizontally</source>
         <translation>Dividir &amp;horizontalmente</translation>

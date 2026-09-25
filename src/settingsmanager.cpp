@@ -176,10 +176,13 @@ void SettingsManager::load()
     m_terminalForeground = QColor(m_settings.value("terminal/foreground", "#C0C0C0").toString());
     m_terminalBackground = QColor(m_settings.value("terminal/background", "#000000").toString());
 
-    // Default Theme: Light (or match system eventually)
-    m_theme = static_cast<ThemeManager::Theme>(
-        m_settings.value("appearance/theme", static_cast<int>(ThemeManager::Light)).toInt()
-    );
+    // Default Theme: Light. Anything other than the explicit Dark value
+    // (including a corrupt/legacy entry) falls back to Light.
+    const int storedTheme = m_settings.value(
+        "appearance/theme", static_cast<int>(ThemeManager::Light)).toInt();
+    m_theme = (storedTheme == static_cast<int>(ThemeManager::Dark))
+                  ? ThemeManager::Dark
+                  : ThemeManager::Light;
 
     m_minimizeToTray = m_settings.value("appearance/minimizeToTray", false).toBool();
     m_useKeychain = m_settings.value("security/useKeychain", true).toBool();

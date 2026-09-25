@@ -162,8 +162,6 @@ Click 'Add' to add a new server.</string>
      <string>&amp;File</string>
     </property>
     <addaction name="actionAddServer"/>
-    <addaction name="separator"/>
-    <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">

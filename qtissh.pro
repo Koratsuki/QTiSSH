@@ -62,8 +62,7 @@ SOURCES += \
     src/keychainstore.cpp \
     src/quickcommandsdialog.cpp \
     src/metricbutton.cpp \
-        metricbutton.h \
-        monitoringdialog.cpp \
+    src/monitoringdialog.cpp \
     src/servermonitoringbar.cpp \
     src/networkdiscoverydialog.cpp \
     src/connectionlogsdialog.cpp \
@@ -103,6 +102,7 @@ HEADERS += \
     src/globalhotkeymanager.h \
     src/keychainstore.h \
     src/quickcommandsdialog.h \
+    src/metricbutton.h \
     src/monitoringdialog.h \
     src/servermonitoringbar.h \
     src/networkdiscoverydialog.h \

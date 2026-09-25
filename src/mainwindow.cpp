@@ -60,6 +60,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_folderManager(new FolderManager(this))
     , m_trayIcon(nullptr)
     , m_recentMenu(nullptr)
+    , m_themeActionGroup(nullptr)
     , m_closing(false)
 {
     ui->setupUi(this);
@@ -200,18 +201,18 @@ void MainWindow::setupUI()
     connect(historyAction, &QAction::triggered, this, &MainWindow::onCommandHistoryClicked);
 
     setupSplitMenu(editMenu);
+    setupThemeMenu(editMenu);
     setupToolsMenu(editMenu);
     setupSecurityMenu(editMenu);
     setupLanguageMenu(editMenu);
 
     // Add Import/Export to File menu
     QMenu *fileMenu = ui->menuFile;
-    fileMenu->insertSeparator(ui->actionAddServer);
+    fileMenu->addSeparator();
     QAction *importAction = fileMenu->addAction(tr("&Import Servers..."));
     connect(importAction, &QAction::triggered, this, &MainWindow::onImportServersClicked);
     QAction *exportAction = fileMenu->addAction(tr("&Export Servers..."));
     connect(exportAction, &QAction::triggered, this, &MainWindow::onExportServersClicked);
-    fileMenu->insertSeparator(ui->actionQuit);
 
     QAction *quickConnectAction = fileMenu->addAction(tr("Quick &Connect..."));
     quickConnectAction->setShortcut(QKeySequence("Ctrl+K"));
@@ -222,7 +223,11 @@ void MainWindow::setupUI()
 
     setupRecentMenu(fileMenu);
     setupExternalTerminalMenu(fileMenu);
-    fileMenu->insertSeparator(ui->actionQuit);
+
+    // Quit always goes last, after a separator.
+    fileMenu->addSeparator();
+    fileMenu->addAction(ui->actionQuit);
+    syncThemeWidget();
 
     // Prompt for master password on startup if one is set
     if (PasswordManager::instance().hasMasterPassword()
@@ -485,19 +490,72 @@ void MainWindow::onAboutClicked()
                           .arg(QStringLiteral(QTISSH_VERSION)));
 }
 
+void MainWindow::setupThemeMenu(QMenu *editMenu)
+{
+    QMenu *themeMenu = editMenu->addMenu(tr("&Appearance"));
+
+    QAction *toggleAction = themeMenu->addAction(tr("&Toggle Light/Dark Theme"));
+    toggleAction->setShortcut(QKeySequence("Ctrl+Shift+D"));
+    connect(toggleAction, &QAction::triggered, this, &MainWindow::onThemeToggleClicked);
+
+    themeMenu->addSeparator();
+
+    m_themeActionGroup = new QActionGroup(themeMenu);
+    m_themeActionGroup->setExclusive(true);
+
+    QAction *lightAction = themeMenu->addAction(tr("&Light Theme"));
+    lightAction->setCheckable(true);
+    lightAction->setData(static_cast<int>(ThemeManager::Light));
+    m_themeActionGroup->addAction(lightAction);
+
+    QAction *darkAction = themeMenu->addAction(tr("&Dark Theme"));
+    darkAction->setCheckable(true);
+    darkAction->setData(static_cast<int>(ThemeManager::Dark));
+    m_themeActionGroup->addAction(darkAction);
+
+    connect(m_themeActionGroup, &QActionGroup::triggered, this, [this](QAction *action) {
+        setTheme(static_cast<ThemeManager::Theme>(action->data().toInt()));
+    });
+
+    syncThemeWidget();
+}
+
+void MainWindow::syncThemeWidget()
+{
+    const bool dark = ThemeManager::instance().currentTheme() == ThemeManager::Dark;
+
+    if (m_themeButton) {
+        m_themeButton->setText(dark ? tr("☀️") : tr("🌙"));
+        m_themeButton->setToolTip(dark ? tr("Switch to Light Theme")
+                                       : tr("Switch to Dark Theme"));
+    }
+
+    if (m_themeActionGroup) {
+        const QList<QAction *> actions = m_themeActionGroup->actions();
+        for (QAction *action : actions) {
+            action->setChecked(action->data().toInt()
+                               == static_cast<int>(ThemeManager::instance().currentTheme()));
+        }
+    }
+}
+
+void MainWindow::setTheme(ThemeManager::Theme theme)
+{
+    if (ThemeManager::instance().currentTheme() == theme) {
+        syncThemeWidget();
+        return;
+    }
+
+    ThemeManager::instance().applyTheme(theme);
+    SettingsManager::instance().setTheme(theme);
+    syncThemeWidget();
+}
+
 void MainWindow::onThemeToggleClicked()
 {
-    ThemeManager &tm = ThemeManager::instance();
-    SettingsManager &sm = SettingsManager::instance();
-    if (tm.currentTheme() == ThemeManager::Light) {
-        tm.applyTheme(ThemeManager::Dark);
-        sm.setTheme(ThemeManager::Dark);
-        m_themeButton->setText(tr("☀️"));
-    } else {
-        tm.applyTheme(ThemeManager::Light);
-        sm.setTheme(ThemeManager::Light);
-        m_themeButton->setText(tr("🌙"));
-    }
+    setTheme(ThemeManager::instance().currentTheme() == ThemeManager::Light
+                 ? ThemeManager::Dark
+                 : ThemeManager::Light);
 }
 
 void MainWindow::onSearchTextChanged(const QString &text)

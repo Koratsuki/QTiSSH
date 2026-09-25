@@ -23,6 +23,7 @@ class SnippetDialog;
 class TerminalSplitWidget;
 class QSystemTrayIcon;
 class QMenu;
+class QActionGroup;
 class QCloseEvent;
 
 class MainWindow : public QMainWindow
@@ -103,6 +104,7 @@ private:
     QToolButton *m_themeButton;
     QSystemTrayIcon *m_trayIcon;
     QMenu *m_recentMenu;
+    QActionGroup *m_themeActionGroup;
     bool m_closing;
 
     void setupUI();
@@ -113,7 +115,10 @@ private:
     void setupTray();
     void setupExternalTerminalMenu(QMenu *fileMenu);
     void setupSplitMenu(QMenu *editMenu);
+    void setupThemeMenu(QMenu *editMenu);
     void rebuildRecentMenu();
+    void setTheme(ThemeManager::Theme theme);
+    void syncThemeWidget();
     void connectToServer(const ServerConfig &config);
     void openSftpTab(const ServerConfig &config);
     void openRemoteEditor(const ServerConfig &config, const QString &remotePath);

@@ -23,6 +23,7 @@ A modern, user-friendly SSH connection manager built with Qt. Manage multiple SS
 🌐 **SSH Tunnels** - Local/Remote/Dynamic port forwarding per connection  
 🪂 **Jump Host** - Connect through an intermediate SSH host  
 🔀 **Import/Export** - Backup and restore server configurations (JSON)  
+🌓 **Light / Dark Theme** - Starts in light mode; switch from `Edit → Appearance` or the 🌙 / ☀️ button  
 🎨 **Terminal Colors** - Customizable foreground/background terminal colors  
 ⚙️ **Custom SSH Options & Profiles** - Per-server options plus reusable named profiles  
 🔁 **Auto-reconnect** - Automatic reconnection after connection loss (max 3 attempts)  
@@ -121,8 +122,156 @@ A new tab will open with either the SSH terminal or SFTP file browser.
 
 - **Edit**: Select a server and click **Edit** to modify its configuration
 - **Delete**: Select a server and click **Delete** to remove it
-- **Import/Export**: `File → Export Servers` / `File → Import Servers` to back up or restore configurations as JSON
+- **Import/Export**: `File → Export Servers` / `File → Import Servers` to back up or restore configurations as JSON. The file format is documented in [Import / Export (JSON format)](#import--export-json-format).
 - **Multiple Connections**: Open multiple tabs to the same or different servers
+
+### Appearance (Light / Dark Theme)
+
+- QTiSSH starts in **Light** mode by default. Use the 🌙 / ☀️ button next to the search bar, or
+  `Edit → Appearance`, to switch themes.
+- `Edit → Appearance` offers:
+  - **Toggle Light/Dark Theme** (Ctrl+Shift+D) — flips the current theme.
+  - **Light Theme** / **Dark Theme** — pick one directly; the active one shows a check mark.
+- The choice is saved in `settings.conf` (`appearance/theme`) and restored on the next launch.
+
+### Import / Export (JSON format)
+
+`File → Export Servers` writes a backup of every saved server as JSON, and
+`File → Import Servers` reads one back. The file is the same format used internally by
+`servers.json`, so you can hand-edit it, generate it from a script, or move servers between machines.
+
+#### Top-level structure
+
+The document root is a **JSON array with one object per server** — not an object with a wrapper key.
+The array is written indented; a compact array is also accepted on import.
+
+```json
+[
+  {
+    "id": "3f1c9a52-7b0e-4a1e-9d2f-5c6b8e0a1d34",
+    "alias": "Web Server",
+    "host": "web.example.com",
+    "port": 22,
+    "username": "deploy",
+    "password": "",
+    "keyPath": "/home/deploy/.ssh/id_ed25519",
+    "authType": 1,
+    "group": "Production",
+    "tags": "web, nginx, tls",
+    "strictHostKeyChecking": true,
+    "tunnels": "L:8080:localhost:80",
+    "jumpHost": "",
+    "forwardAgent": true,
+    "sshOptions": "ServerAliveInterval=30\nCompression=yes",
+    "autoReconnect": true,
+    "profileName": ""
+  }
+]
+```
+
+#### Field reference
+
+| Field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `id` | string | no | new UUID | Unique server identifier. **Regenerated on every import**, so importing the same file twice creates two independent copies. |
+| `alias` | string | no | `""` | Friendly display name shown in the server list. |
+| `host` | string | **yes** | — | IP address or hostname. An empty host makes the entry unusable for connecting. |
+| `port` | number | no | `22` | SSH port. Must be between 1 and 65535. |
+| `username` | string | **yes** | — | SSH user. An empty username makes the entry unusable for connecting. |
+| `password` | string | no | `""` | See [Password values](#password-values) below. Empty means "no stored password". |
+| `keyPath` | string | no | `""` | Absolute path to the private key, used when `authType` is `1`. Never copied or modified. |
+| `authType` | number | no | `0` | `0` = Password, `1` = PublicKey, `2` = SSHAgent. See [authType values](#authtype-values). |
+| `group` | string | no | `""` | Group the server is filed under. Must already exist as a folder, otherwise the server appears ungrouped. |
+| `tags` | string | no | `""` | Free-form labels for filtering, comma separated (e.g. `"web, nginx"`). |
+| `strictHostKeyChecking` | boolean | no | `false` | Verify the server's host key. **Disabled by default** — enable it in production. |
+| `tunnels` | string | no | `""` | Port forwards, see [Tunnel syntax](#tunnel-syntax). |
+| `jumpHost` | string | no | `""` | ProxyJump target, passed to `ssh -J`. Use `user@bastion.example.com`. |
+| `forwardAgent` | boolean | no | `false` | Forward your SSH agent to the remote server. |
+| `sshOptions` | string | no | `""` | Extra OpenSSH options, one `Key=Value` per line, `#` starts a comment. See [SSH options](#ssh-options-syntax). |
+| `autoReconnect` | boolean | no | `false` | Reconnect automatically after a connection loss (up to 3 attempts). |
+| `profileName` | string | no | `""` | Name of a saved profile from `profiles.json`. Its options are merged underneath the server's own `sshOptions`. |
+
+Only `host` and `username` matter for the entry to be usable. Every other key may be omitted —
+missing keys fall back to the defaults in the table, and unknown keys are ignored, so files
+produced by older or newer versions still import.
+
+#### authType values
+
+| Value | Meaning | Uses |
+| --- | --- | --- |
+| `0` | **Password** | `password` |
+| `1` | **PublicKey** | `keyPath` |
+| `2` | **SSHAgent** | key already loaded in the running `ssh-agent` |
+
+#### Password values
+
+`password` is a plain string, but QTiSSH uses two prefixes to mark values it cannot read as
+plain text. Both are safe to write in a file you generate yourself:
+
+| Value | Meaning | What happens on import |
+| --- | --- | --- |
+| `"secret123"` | Plain text | Stored as-is and re-encrypted (or sent to the keychain) on the next save. |
+| `"enc:<base64>"` | Encrypted with your **master password** (AES-256-CBC) | Kept encrypted, but **only if this QTiSSH install has the same master password set and unlocked**. If no master password is set, the value is **discarded** and you must re-enter the password. |
+| `"kc:<id>"` | Marker meaning "the real password lives in the OS keychain" | **Always discarded** on import, because it points at the keychain entry of the *source* machine. Re-enter the password. |
+| `""` | No stored password | Nothing to connect with until you add one. |
+
+**Recommended practice:** leave `password` empty in exported/hand-written files and store secrets
+in a password manager. The only exception is a backup you are moving to another machine that
+shares the same master password — in that case the `enc:` value survives the round trip.
+
+#### Tunnel syntax
+
+`tunnels` is a single string holding one or more specs separated by whitespace, commas or
+semicolons. Each spec may be prefixed with its type:
+
+| Form | Result |
+| --- | --- |
+| `L:8080:localhost:80` | Local forward (`ssh -L 8080:localhost:80`) |
+| `R:5432:dbhost:5432` | Remote forward (`ssh -R 5432:dbhost:5432`) |
+| `D:1080` | SOCKS proxy (`ssh -D 1080`) |
+| `8080:localhost:80` | No prefix — treated as local forward |
+
+#### SSH options syntax
+
+`sshOptions` is a multi-line string of OpenSSH `Key=Value` pairs. Each line becomes one `-o Key=Value`
+argument, and the profile options (from `profileName`) are placed *before* the server's own, so a
+server-specific line wins on conflict.
+
+```
+# keep the session alive through NAT
+ServerAliveInterval=30
+ServerAliveCountMax=6
+Compression=yes
+```
+
+#### Minimal example
+
+Only the two mandatory fields, with everything else defaulted:
+
+```json
+[
+  {
+    "host": "192.168.1.10",
+    "username": "root"
+  },
+  {
+    "host": "backup.example.org",
+    "username": "admin",
+    "port": 2222,
+    "authType": 1,
+    "keyPath": "/home/admin/.ssh/id_ed25519"
+  }
+]
+```
+
+#### Import behaviour
+
+- Imported servers are **added** to the current list; existing entries are never overwritten or deleted.
+- Each imported server gets a **fresh `id`**, so imports never collide with your current servers.
+- Folders are not part of the file — `group` is only a label, so a group that does not exist
+  locally leaves the server ungrouped.
+- The dialog reports how many servers were imported (`Imported N server(s).`).
+- A file whose root is not an array, or that is not valid JSON, imports 0 servers.
 
 ### Password Security
 
