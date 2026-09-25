@@ -57,6 +57,22 @@ Easy-to-use dialog for adding new servers with all necessary connection paramete
 - OpenSSH client (`ssh` and `sftp` commands must be available in PATH)
 - Linux: X11 development headers (`libx11-dev`) for global hotkeys
 
+## Installation
+
+Prebuilt packages are attached to every [release](https://github.com/Koratsuki/QTiSSH/releases).
+
+### Debian / Ubuntu
+
+```bash
+sudo apt install ./qtissh_*.deb
+```
+
+Packages are built against the Qt of the target Ubuntu release (24.04 ships Qt 6.4), and the `.deb` declares the exact Qt version it was linked against. That way `apt` refuses to install the package where the Qt runtime would be too old, instead of leaving you with an application that fails to start with `version 'Qt_6.x' not found`. On older releases such as Ubuntu 22.04 (Qt 6.2), build from source instead.
+
+### Windows
+
+Download the portable `.zip` from the release and run `QTiSSH.exe`; it bundles the Qt and MSVC runtime DLLs, so no installation is required.
+
 ## Building from Source
 
 ### Linux

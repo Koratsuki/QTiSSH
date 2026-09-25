@@ -14,34 +14,59 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    env:
-      QT_VERSION: 6.7.2
-      QT_MODULES: qtcharts
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: ${{ env.QT_VERSION }}
-          modules: ${{ env.QT_MODULES }}
-          cache: true
-
-      - name: Install system dependencies
+      # Build against the runner's own Qt rather than a downloaded one. Qt
+      # records the symbol version of the headers it compiles against into the
+      # executable (Qt_6.7 when building against 6.7.2). Linking against a
+      # newer Qt than the target system ships produces a package that installs
+      # fine and then fails to start with
+      #   "version `Qt_6.7' not found (required by qtissh)".
+      - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libssl-dev libx11-dev ninja-build rpm
+          sudo apt-get install -y --no-install-recommends \
+            qt6-base-dev \
+            qt6-charts-dev \
+            libgl1-mesa-dev \
+            libssl-dev \
+            libx11-dev \
+            ninja-build \
+            rpm \
+            file
 
       - name: Configure
         run: |
           cmake -S src -B build \
             -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
+            -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
         run: cmake --build build
+
+      - name: Verify Qt symbol requirements
+        run: |
+          set -eu
+          # The binary's required Qt symbol version must match the Qt it was
+          # built against, otherwise the package would ship a binary the target
+          # distro cannot start. Fail loudly here instead of at user install.
+          required=$(objdump -p build/QTiSSH \
+            | sed -n '/Version References/,/^$/p' \
+            | grep -oE 'Qt_6\.[0-9]+' | sort -V -u | tail -1 || true)
+          built=$(pkg-config --modversion Qt6Core)
+          echo "Binary requires : ${required:-<none>}"
+          echo "Built against   : Qt ${built}"
+          if [ -n "$required" ]; then
+            required_minor=${required#Qt_6.}
+            built_minor=$(printf '%s' "$built" | cut -d. -f2)
+            if [ "$required_minor" -gt "$built_minor" ]; then
+              echo "::error::binary requires ${required} but was linked against Qt ${built}"
+              exit 1
+            fi
+          fi
+          echo "Qt symbol requirements are consistent."
 
       - name: Package DEB
         run: cpack --config build/CPackConfig.cmake -G DEB -B dist
@@ -51,6 +76,15 @@ jobs:
 
       - name: Show packages
         run: ls -lh dist/
+
+      - name: Show DEB dependencies
+        run: |
+          set -eu
+          # Echo the Depends field so the Qt floor is visible in the log.
+          for deb in dist/*.deb; do
+            echo "== ${deb}"
+            dpkg-deb -f "${deb}" Depends
+          done
 
       - name: Upload packages as artifacts
         uses: actions/upload-artifact@v4

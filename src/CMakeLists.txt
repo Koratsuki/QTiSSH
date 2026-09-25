@@ -202,13 +202,23 @@ set(CPACK_PACKAGING_INSTALL_PREFIX "/usr")
 
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Koratsuki <koratsuki.nijuusan@gmail.com>")
 set(CPACK_DEBIAN_PACKAGE_SECTION "net")
+
+# Qt stamps a symbol version (Qt_6.x) into every executable it links, and the
+# loader refuses to start a binary whose required version the installed Qt does
+# not provide. So the package must never declare a Qt older than the one we
+# actually built against, otherwise apt installs a program that then dies with
+# "version `Qt_6.x' not found". Deriving the floor from QT_VERSION keeps the
+# build host and the declared dependency from ever disagreeing.
+set(QT_RUNTIME_MIN "${QT_VERSION}")
+message(STATUS "Packaging: declaring Qt runtime >= ${QT_RUNTIME_MIN}")
+
 set(CPACK_DEBIAN_PACKAGE_DEPENDS
-    "libqt6core6 | libqt6core6t64 (>= 6.2), \
-     libqt6gui6 | libqt6gui6t64 (>= 6.2), \
-     libqt6widgets6 | libqt6widgets6t64 (>= 6.2), \
-     libqt6network6 | libqt6network6t64 (>= 6.2), \
-     libqt6dbus6 | libqt6dbus6t64 (>= 6.2), \
-     libqt6charts6, \
+    "libqt6core6 (>= ${QT_RUNTIME_MIN}) | libqt6core6t64 (>= ${QT_RUNTIME_MIN}), \
+     libqt6gui6 (>= ${QT_RUNTIME_MIN}) | libqt6gui6t64 (>= ${QT_RUNTIME_MIN}), \
+     libqt6widgets6 (>= ${QT_RUNTIME_MIN}) | libqt6widgets6t64 (>= ${QT_RUNTIME_MIN}), \
+     libqt6network6 (>= ${QT_RUNTIME_MIN}) | libqt6network6t64 (>= ${QT_RUNTIME_MIN}), \
+     libqt6dbus6 (>= ${QT_RUNTIME_MIN}) | libqt6dbus6t64 (>= ${QT_RUNTIME_MIN}), \
+     libqt6charts6 (>= ${QT_RUNTIME_MIN}) | libqt6charts6t64 (>= ${QT_RUNTIME_MIN}), \
      libssl3 | libssl3t64, \
      libx11-6, \
      openssh-client")
@@ -217,7 +227,8 @@ set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS OFF)
 set(CPACK_RPM_PACKAGE_LICENSE "MIT")
 set(CPACK_RPM_PACKAGE_GROUP "Applications/Internet")
 set(CPACK_RPM_PACKAGE_REQUIRES
-    "qt6-qtbase >= 6.2, qt6-qtbase-gui, qt6-qtcharts, \
+    "qt6-qtbase >= ${QT_RUNTIME_MIN}, qt6-qtbase-gui, \
+     qt6-qtcharts >= ${QT_RUNTIME_MIN}, \
      openssl-libs, libX11, openssh-clients")
 set(CPACK_RPM_PACKAGE_AUTOREQ OFF)
 set(CPACK_RPM_PACKAGE_AUTOPROV OFF)
