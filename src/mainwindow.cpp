@@ -49,6 +49,10 @@
 #include <QActionGroup>
 #include <QApplication>
 
+#ifndef QTISSH_VERSION
+#  define QTISSH_VERSION "0.0.0"
+#endif
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -471,13 +475,14 @@ void MainWindow::onToggleWindowGlobal()
 void MainWindow::onAboutClicked()
 {
     QMessageBox::about(this, tr("About QTiSSH"),
-                      tr("QTiSSH v0.1.4\n\nA Qt-based SSH Connection Manager\n\n"
+                      tr("QTiSSH v%1\n\nA Qt-based SSH Connection Manager\n\n"
                          "Features:\n"
                          "- Multiple simultaneous SSH connections\n"
                          "- Password and public key authentication\n"
                          "- Server configuration management\n"
                          "- SFTP file browser\n"
-                         "- Folder organization"));
+                         "- Folder organization")
+                          .arg(QStringLiteral(QTISSH_VERSION)));
 }
 
 void MainWindow::onThemeToggleClicked()

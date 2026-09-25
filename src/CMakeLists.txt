@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(QTiSSH VERSION 0.1.5 LANGUAGES CXX)
+project(QTiSSH VERSION 0.1.7 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -135,6 +135,7 @@ else()
     endif()
 endif()
 
+target_compile_definitions(QTiSSH PRIVATE QTISSH_VERSION="${PROJECT_VERSION}")
 target_link_libraries(QTiSSH PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Charts OpenSSL::SSL OpenSSL::Crypto)
 
 if(Qt${QT_VERSION_MAJOR}DBus_FOUND)

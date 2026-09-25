@@ -444,8 +444,8 @@ Click &apos;Add&apos; to add a new server.</source>
         <translation>Acerca de QTiSSH</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="474"/>
-        <source>QTiSSH v0.1.4
+        <location filename="../mainwindow.cpp" line="478"/>
+        <source>QTiSSH v%1
 
 A Qt-based SSH Connection Manager
 
@@ -455,7 +455,7 @@ Features:
 - Server configuration management
 - SFTP file browser
 - Folder organization</source>
-        <translation>QTiSSH v0.1.4</translation>
+        <translation>QTiSSH v%1</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="490"/>

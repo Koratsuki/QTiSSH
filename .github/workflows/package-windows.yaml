@@ -51,6 +51,7 @@ jobs:
             VERSION=$(grep 'project(QTiSSH VERSION' src/CMakeLists.txt | sed 's/.*VERSION \([0-9.]*\).*/\1/')
             echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
           fi
+          echo "PKG=QTiSSH-v${{ steps.version.outputs.VERSION }}-x86_64" >> $GITHUB_OUTPUT
 
       - name: Configure
         shell: cmd
@@ -60,22 +61,95 @@ jobs:
       - name: Build
         run: cmake --build build
 
-      - name: Rename binary
-        shell: bash
+      # The bare .exe is not runnable on a clean machine: it needs the Qt6
+      # runtime (Core/Gui/Widgets/Network/Charts/DBus), the qwindows platform
+      # plugin, the MSVC redistributables and the OpenSSL DLLs from vcpkg.
+      # Collect all of them next to the binary and ship that folder as a zip.
+      - name: Assemble portable bundle
+        shell: pwsh
         run: |
-          cp build/QTiSSH.exe "QTiSSH-v${{ steps.version.outputs.VERSION }}-x86_64.exe"
+          $pkg  = '${{ steps.version.outputs.PKG }}'
+          $stage = Join-Path 'dist' $pkg
+          if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
+          New-Item -ItemType Directory -Path $stage -Force | Out-Null
+          $stageFull = (Resolve-Path $stage).Path
 
-      - name: Show packages
-        run: Get-ChildItem -Filter *.exe | Select-Object Name, Length
+          Copy-Item 'build\QTiSSH.exe' (Join-Path $stage "$pkg.exe")
+
+          # windeployqt resolves the Qt6 DLLs from the exe's import table and
+          # also copies the platform plugin and (with --compiler-runtime) the
+          # MSVC redistributable DLLs.
+          windeployqt --release --compiler-runtime --no-translations `
+            (Join-Path $stage "$pkg.exe")
+
+          # OpenSSL comes from vcpkg and is not known to windeployqt.
+          Copy-Item "$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\bin\*.dll" $stage -Force
+
+          Get-ChildItem $stageFull -Recurse -File | ForEach-Object {
+            "{0,-38} {1,10:N0} bytes" -f $_.FullName.Substring($stageFull.Length + 1), $_.Length
+          }
+
+      - name: Verify bundle has no missing dependencies
+        shell: pwsh
+        run: |
+          $pkg   = '${{ steps.version.outputs.PKG }}'
+          $stage = Join-Path 'dist' $pkg
+          $binaries = Get-ChildItem $stage -Recurse -File |
+                      Where-Object { $_.Extension -in '.exe', '.dll' }
+
+          if (-not (Test-Path (Join-Path $stage 'platforms\qwindows.dll'))) {
+            throw 'Missing Qt platform plugin: platforms\qwindows.dll'
+          }
+
+          $bundled = @{}
+          foreach ($b in $binaries) { $bundled[$b.Name.ToLower()] = $true }
+
+          $systemDirs = @("$env:SystemRoot\System32", "$env:SystemRoot\SysWOW64")
+          $missing = [System.Collections.Generic.SortedSet[string]]::new()
+
+          foreach ($b in $binaries) {
+            $deps = & dumpbin /dependents $b.FullName 2>$null
+            if ($LASTEXITCODE -ne 0) { throw "dumpbin failed on $($b.FullName)" }
+            foreach ($line in $deps) {
+              $name = $line.Trim()
+              if ($name -notmatch '^[A-Za-z0-9_.\-+]+\.dll$') { continue }
+              # API sets are resolved by the loader, they are not real files.
+              if ($name -match '^(api-ms-win|ext-ms-win)') { continue }
+              if ($bundled.ContainsKey($name.ToLower())) { continue }
+              if ($systemDirs | Where-Object { Test-Path (Join-Path $_ $name) }) { continue }
+              [void]$missing.Add("$name  (required by $($b.Name))")
+            }
+          }
+
+          if ($missing.Count -gt 0) {
+            $missing | ForEach-Object { Write-Host "  MISSING: $_" }
+            throw "$($missing.Count) unresolved runtime dependencies in the bundle"
+          }
+
+          $crt = @('msvcp140.dll', 'vcruntime140.dll', 'vcruntime140_1.dll') |
+                 Where-Object { Test-Path (Join-Path $stage $_) }
+          Write-Host "All runtime dependencies are bundled."
+          Write-Host "MSVC runtime included: $($crt -join ', ')"
+          Write-Host "Bundle contents: $((Get-ChildItem $stage -Recurse -File).Count) files"
+
+      - name: Create zip archive
+        shell: pwsh
+        run: |
+          $pkg = '${{ steps.version.outputs.PKG }}'
+          Compress-Archive -Path (Join-Path 'dist' $pkg) `
+                           -DestinationPath "$pkg.zip" -CompressionLevel Optimal
+          Get-ChildItem '*.zip' | Select-Object Name, Length
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: qtissh-windows
-          path: "*.exe"
+          path: "*.zip"
+          if-no-files-found: error
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: "*.exe"
+          files: "*.zip"
+          fail_on_unmatched_files: true
