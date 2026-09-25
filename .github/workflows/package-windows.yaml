@@ -81,23 +81,48 @@ jobs:
           # MSVC redistributable DLLs.
           windeployqt --release --compiler-runtime --no-translations `
             (Join-Path $stage "$pkg.exe")
+          if ($LASTEXITCODE -ne 0) {
+            throw "windeployqt failed with exit code $LASTEXITCODE"
+          }
 
           # OpenSSL comes from vcpkg and is not known to windeployqt.
           Copy-Item "$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\bin\*.dll" $stage -Force
 
           # windeployqt ships vc_redist.x64.exe but not the CRT itself, so copy
           # the MSVC runtime DLLs to make the folder runnable as-is.
+          # Several sources are tried because their layout varies per image;
+          # the verification step is what actually enforces the requirement.
+          $crtCandidates = @()
+          if ($env:VCToolsRedistDir) { $crtCandidates += $env:VCToolsRedistDir }
+          if ($env:VCINSTALLDIR) { $crtCandidates += (Join-Path $env:VCINSTALLDIR 'Redist\MSVC') }
           $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
-          $vcDir = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-          $crt = Get-ChildItem (Join-Path $vcDir 'VC\Redist\MSVC') -Directory |
-                 Sort-Object { [version]$_.Name } -Descending | Select-Object -First 1
-          $crtDlls = Get-ChildItem (Join-Path $crt.FullName 'x64') -Recurse -Directory |
-                     Where-Object { $_.Name -like 'Microsoft.VC*.CRT' } |
-                     ForEach-Object { Get-ChildItem $_.FullName -Filter '*.dll' } |
-                     Where-Object { $_.Name -ne 'mscp140.dll' }
-          if (-not $crtDlls) { throw "No MSVC runtime DLLs found under $($crt.FullName)" }
-          Copy-Item $crtDlls $stage -Force
-          Write-Host "Bundled MSVC runtime from $($crt.Name)"
+          if (${env:ProgramFiles(x86)} -and (Test-Path $vswhere)) {
+            $vcDir = & $vswhere -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+            if ($vcDir) { $crtCandidates += (Join-Path $vcDir 'VC\Redist\MSVC') }
+          }
+
+          $crtCopied = 0
+          foreach ($root in $crtCandidates) {
+            if (-not (Test-Path $root)) { continue }
+            $versions = Get-ChildItem $root -Directory -ErrorAction SilentlyContinue |
+                        Sort-Object -Descending -Property @{ Expression = { try { [version]$_.Name } catch { [version]'0.0' } } }
+            foreach ($vdir in $versions) {
+              $crtDlls = Get-ChildItem (Join-Path $vdir.FullName 'x64') -Recurse -Directory -ErrorAction SilentlyContinue |
+                         Where-Object { $_.Name -like 'Microsoft.VC*.CRT' } |
+                         ForEach-Object { Get-ChildItem $_.FullName -Filter '*.dll' -ErrorAction SilentlyContinue } |
+                         Where-Object { $_.Name -ne 'mscp140.dll' }
+              if ($crtDlls) {
+                Copy-Item $crtDlls $stage -Force
+                $crtCopied = @($crtDlls).Count
+                Write-Host "Bundled $crtCopied MSVC runtime DLLs from $($vdir.FullName)"
+                break
+              }
+            }
+            if ($crtCopied) { break }
+          }
+          if (-not $crtCopied) {
+            Write-Warning "No MSVC runtime DLLs found (searched: $($crtCandidates -join ', '))"
+          }
 
           Get-ChildItem $stageFull -Recurse -File | ForEach-Object {
             "{0,-38} {1,10:N0} bytes" -f $_.FullName.Substring($stageFull.Length + 1), $_.Length
