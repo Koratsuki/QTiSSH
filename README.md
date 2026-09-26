@@ -70,9 +70,15 @@ sudo apt install ./qtissh_*.deb
 
 Packages are built against the Qt of the target Ubuntu release (24.04 ships Qt 6.4), and the `.deb` declares the exact Qt version it was linked against. That way `apt` refuses to install the package where the Qt runtime would be too old, instead of leaving you with an application that fails to start with `version 'Qt_6.x' not found`. On older releases such as Ubuntu 22.04 (Qt 6.2), build from source instead.
 
+### RPM (Fedora)
+
+Download `qtissh-*.rpm` from the release and install it with `dnf install ./qtissh-*.rpm`.
+
 ### Windows
 
 Download the portable `.zip` from the release and run `QTiSSH.exe`; it bundles the Qt and MSVC runtime DLLs, so no installation is required.
+
+> **Do not build packages on a machine with a newer Qt than your users have.** Qt stamps a symbol version (`Qt_6.x`) into every binary it links, and the dynamic loader refuses to start a binary that requires a version the installed Qt does not provide. The packages therefore declare the Qt floor they were built against, so a package built against a newer Qt is rejected by the package manager instead of installing something that fails at startup. The released packages are always built by CI against the Qt of the target distro, which is why they are the ones to distribute.
 
 ## Building from Source
 

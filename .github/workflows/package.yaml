@@ -86,6 +86,60 @@ jobs:
             dpkg-deb -f "${deb}" Depends
           done
 
+      - name: Verify packaged binaries
+        run: |
+          set -eu
+          # The step above checks build/QTiSSH, before packaging. Both formats
+          # set their dependencies by hand (AUTOREQ/AUTOPROV are off), so
+          # nothing ties the declared Qt floor to the binary that actually
+          # ended up in the package. That is exactly how a package ends up
+          # declaring qt6-qtbase >= 6.4 while shipping a binary that needs
+          # Qt_6.7, which installs cleanly and then dies at startup. Re-check
+          # the extracted artifact against its own metadata.
+          built=$(pkg-config --modversion Qt6Core)
+          built_minor=$(printf '%s' "$built" | cut -d. -f2)
+          fail=0
+
+          check_binary() { # $1 = binary path, $2 = declared qt floor ("" = none)
+            req=$(objdump -p "$1" \
+              | sed -n '/Version References/,/^$/p' \
+              | grep -oE 'Qt_6\.[0-9]+' | sort -V -u | tail -1 || true)
+            [ -n "$req" ] || { echo "   no Qt symbol version found"; return 0; }
+            req_minor=${req#Qt_6.}
+            echo "   binary requires ${req}; declared floor: ${2:-<none>}"
+            if [ -n "$2" ] && [ "$req_minor" -gt "$2" ]; then
+              echo "   ::error::binary needs ${req} but the package only declares >= 6.$2"
+              return 1
+            fi
+            return 0
+          }
+
+          for rpm in dist/*.rpm; do
+            echo "== ${rpm}"
+            floor=$(rpm -qp --requires "${rpm}" 2>/dev/null \
+              | grep -oE 'qt6-qtbase[^,]*>=[ ]*[0-9]+\.[0-9]+' \
+              | grep -oE '[0-9]+\.[0-9]+$' | cut -d. -f2 | sort -V | tail -1)
+            rpm -qp --requires "${rpm}" 2>/dev/null | grep -E 'qt6' || true
+            tmp=$(mktemp -d)
+            (cd "${tmp}" && rpm2cpio "${GITHUB_WORKSPACE}/${rpm}" | cpio -idm --quiet)
+            check_binary "${tmp}/usr/bin/QTiSSH" "${floor}" || fail=1
+            rm -rf "${tmp}"
+          done
+
+          for deb in dist/*.deb; do
+            echo "== ${deb}"
+            floor=$(dpkg-deb -f "${deb}" Depends | grep -oE 'libqt6core6[^,]*>=[ ]*[0-9]+\.[0-9]+' \
+              | grep -oE '[0-9]+\.[0-9]+$' | cut -d. -f2 | sort -V | tail -1)
+            tmp=$(mktemp -d)
+            dpkg-deb -x "${deb}" "${tmp}"
+            check_binary "${tmp}/usr/bin/QTiSSH" "${floor}" || fail=1
+            rm -rf "${tmp}"
+          done
+
+          echo "Built against Qt ${built} (6.${built_minor})"
+          [ "${fail}" -eq 0 ] || { echo "::error::packaged binary is inconsistent with its declared Qt floor"; exit 1; }
+          echo "Packaged binaries are consistent with their declared dependencies."
+
       - name: Upload packages as artifacts
         uses: actions/upload-artifact@v4
         with:
