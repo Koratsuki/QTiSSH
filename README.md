@@ -23,7 +23,7 @@ A modern, user-friendly SSH connection manager built with Qt. Manage multiple SS
 🌐 **SSH Tunnels** - Local/Remote/Dynamic port forwarding per connection  
 🪂 **Jump Host** - Connect through an intermediate SSH host  
 🔀 **Import/Export** - Backup and restore server configurations (JSON)  
-🌓 **Light / Dark Theme** - Starts in light mode; switch from `Edit → Appearance` or the 🌙 / ☀️ button  
+🌓 **Light / Dark Theme** - Starts in light mode; switch from `Edit → Appearance` or the sun/moon button in the search bar  
 🎨 **Terminal Colors** - Customizable foreground/background terminal colors  
 ⚙️ **Custom SSH Options & Profiles** - Per-server options plus reusable named profiles  
 🔁 **Auto-reconnect** - Automatic reconnection after connection loss (max 3 attempts)  

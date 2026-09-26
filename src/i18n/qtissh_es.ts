@@ -217,12 +217,6 @@ Click &apos;Add&apos; to add a new server.</source>
         <translation>Buscar servidores...</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="120"/>
-        <location filename="../mainwindow.cpp" line="494"/>
-        <source>🌙</source>
-        <translation>🌙</translation>
-    </message>
-    <message>
         <location filename="../mainwindow.cpp" line="121"/>
         <source>Toggle Dark/Light Theme</source>
         <translation>Cambiar tema oscuro/claro</translation>
@@ -486,11 +480,6 @@ Features:
 - SFTP file browser
 - Folder organization</source>
         <translation>QTiSSH v%1</translation>
-    </message>
-    <message>
-        <location filename="../mainwindow.cpp" line="490"/>
-        <source>☀️</source>
-        <translation>☀️</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="590"/>

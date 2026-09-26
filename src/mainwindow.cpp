@@ -123,7 +123,15 @@ void MainWindow::setupUI()
     m_searchBar->setClearButtonEnabled(true);
     
     m_themeButton = new QToolButton(this);
-    m_themeButton->setText(tr("🌙"));
+    // The glyph is painted by ThemeManager rather than typed as an emoji: the
+    // font that covers U+2600/U+1F319 varies per distro, and sizing the button
+    // from those metrics could clip the glyph away entirely. A fixed size plus
+    // an icon keeps the control readable on every platform.
+    m_themeButton->setAutoRaise(false);
+    m_themeButton->setCursor(Qt::PointingHandCursor);
+    m_themeButton->setFocusPolicy(Qt::StrongFocus);
+    m_themeButton->setIconSize(QSize(18, 18));
+    m_themeButton->setFixedSize(32, 28);
     m_themeButton->setToolTip(tr("Toggle Dark/Light Theme"));
     
     QHBoxLayout *searchLayout = new QHBoxLayout();
@@ -531,9 +539,14 @@ void MainWindow::syncThemeWidget()
     const bool dark = ThemeManager::instance().currentTheme() == ThemeManager::Dark;
 
     if (m_themeButton) {
-        m_themeButton->setText(dark ? tr("☀️") : tr("🌙"));
-        m_themeButton->setToolTip(dark ? tr("Switch to Light Theme")
-                                       : tr("Switch to Dark Theme"));
+        // The icon shows the theme the button switches to, matching the
+        // previous emoji behaviour.
+        const bool toDark = !dark;
+        m_themeButton->setIcon(toDark ? ThemeManager::moonIcon() : ThemeManager::sunIcon());
+        m_themeButton->setText(QString());
+        m_themeButton->setToolTip(toDark ? tr("Switch to Dark Theme")
+                                         : tr("Switch to Light Theme"));
+        m_themeButton->setAccessibleName(m_themeButton->toolTip());
     }
 
     if (m_themeActionGroup) {
