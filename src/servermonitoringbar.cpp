@@ -12,6 +12,7 @@
 #include <QDateTimeAxis>
 #include <QDialog>
 #include <QDebug>
+#include <QPalette>
 #include <QtCharts>
 
 ServerMonitoringBar::ServerMonitoringBar(const ServerConfig &config, QWidget *parent)
@@ -142,14 +143,20 @@ void ServerMonitoringBar::setupUI()
     mainLayout->addStretch();
     
     // Style
+    //
+    // These used to be literal #2b2b2b / #e0e0e0 / #3c3c3c values, which pinned
+    // this bar to the old hand-drawn dark look and left it standing out against
+    // whatever the desktop style was painting around it. palette(...) resolves
+    // against the application palette at paint time, so the bar now follows the
+    // active style and needs no rebuilding when the theme changes.
     setStyleSheet(R"(
         ServerMonitoringBar {
-            background-color: #2b2b2b;
-            border-top: 1px solid #3c3c3c;
-            color: #e0e0e0;
+            background-color: palette(window);
+            border-top: 1px solid palette(mid);
+            color: palette(window-text);
         }
         QLabel {
-            color: #e0e0e0;
+            color: palette(window-text);
             font-size: 11px;
             font-family: Monospace;
         }
@@ -159,10 +166,10 @@ void ServerMonitoringBar::setupUI()
             background-color: transparent;
         }
         QPushButton:hover {
-            background-color: #3c3c3c;
+            background-color: palette(alternate-base);
         }
         QPushButton:pressed {
-            background-color: #4a4a4a;
+            background-color: palette(mid);
         }
     )");
 }
@@ -171,7 +178,7 @@ QWidget* ServerMonitoringBar::createSeparator()
 {
     QWidget *sep = new QWidget(this);
     sep->setFixedWidth(1);
-    sep->setStyleSheet("background-color: #3c3c3c;");
+    sep->setStyleSheet("background-color: palette(mid);");
     sep->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     return sep;
 }
@@ -313,12 +320,12 @@ void ServerMonitoringBar::showHoverChart(MetricButton::MetricType type, const QP
     chart->setTitle(type == MetricButton::CPU ? tr("CPU Usage") : 
                     type == MetricButton::Memory ? tr("Memory Usage") : tr("Network Usage"));
     chart->legend()->hide();
-    chart->setBackgroundBrush(QBrush(QColor("#2b2b2b")));
-    chart->setTitleBrush(QBrush(Qt::white));
+    chart->setBackgroundBrush(QBrush(palette().color(QPalette::Base)));
+    chart->setTitleBrush(QBrush(palette().color(QPalette::WindowText)));
     chart->setMargins(QMargins(5, 5, 5, 5));
     
     m_hoverChartSeries = new QLineSeries();
-    m_hoverChartSeries->setPen(QPen(QColor("#00d4aa"), 2));
+    m_hoverChartSeries->setPen(QPen(palette().color(QPalette::Highlight), 2));
     
     // Use history data from the button
     MetricButton *button = nullptr;
@@ -347,22 +354,22 @@ void ServerMonitoringBar::showHoverChart(MetricButton::MetricType type, const QP
     QValueAxis *axisY = new QValueAxis();
     axisY->setRange(0, 100);
     axisY->setLabelFormat("%.0f");
-    axisY->setGridLineColor(QColor("#3c3c3c"));
-    axisY->setLabelsColor(Qt::white);
+    axisY->setGridLineColor(palette().color(QPalette::Mid));
+    axisY->setLabelsColor(palette().color(QPalette::WindowText));
     chart->addAxis(axisY, Qt::AlignLeft);
     m_hoverChartSeries->attachAxis(axisY);
     
     m_hoverChartView = new QChartView(chart);
     m_hoverChartView->setRenderHint(QPainter::Antialiasing);
     m_hoverChartView->setMinimumSize(280, 150);
-    m_hoverChartView->setStyleSheet("background-color: #2b2b2b; border: 1px solid #3c3c3c; border-radius: 4px;");
+    m_hoverChartView->setStyleSheet("background-color: palette(base); border: 1px solid palette(mid); border-radius: 4px;");
     
     m_hoverChartWidget = new QWidget(nullptr, Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
     // Don't use WA_DeleteOnClose - we manage lifetime manually
     auto *layout = new QVBoxLayout(m_hoverChartWidget);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(m_hoverChartView);
-    m_hoverChartWidget->setStyleSheet("background-color: #2b2b2b; border: 1px solid #3c3c3c; border-radius: 4px;");
+    m_hoverChartWidget->setStyleSheet("background-color: palette(base); border: 1px solid palette(mid); border-radius: 4px;");
     
     // Position near the button, ensure it's on screen
     int x = globalPos.x() - 140;
@@ -408,17 +415,17 @@ void ServerMonitoringBar::showHistoryDialog(MetricButton::MetricType type)
                                     type == MetricButton::Memory ? tr("Memory History (24h)") : tr("Network History (24h)"));
     m_historyDialog->setMinimumSize(600, 400);
     m_historyDialog->setAttribute(Qt::WA_DeleteOnClose, false);
-    m_historyDialog->setStyleSheet("background-color: #2b2b2b; color: #e0e0e0;");
+    m_historyDialog->setStyleSheet("background-color: palette(window); color: palette(window-text);");
     
     QChart *chart = new QChart();
     chart->setTitle(type == MetricButton::CPU ? tr("CPU Usage - Last 24 Hours") : 
                     type == MetricButton::Memory ? tr("Memory Usage - Last 24 Hours") : tr("Network Usage - Last 24 Hours"));
     chart->legend()->hide();
-    chart->setBackgroundBrush(QBrush(QColor("#2b2b2b")));
-    chart->setTitleBrush(QBrush(Qt::white));
+    chart->setBackgroundBrush(QBrush(palette().color(QPalette::Base)));
+    chart->setTitleBrush(QBrush(palette().color(QPalette::WindowText)));
     
     m_historyDialogSeries = new QLineSeries();
-    m_historyDialogSeries->setPen(QPen(QColor("#00d4aa"), 2));
+    m_historyDialogSeries->setPen(QPen(palette().color(QPalette::Highlight), 2));
     
     MetricButton *button = nullptr;
     switch (type) {
@@ -439,7 +446,7 @@ void ServerMonitoringBar::showHistoryDialog(MetricButton::MetricType type)
     QDateTimeAxis *axisX = new QDateTimeAxis();
     axisX->setFormat("HH:mm");
     axisX->setTitleText(tr("Time"));
-    axisX->setGridLineColor(QColor("#3c3c3c"));
+    axisX->setGridLineColor(palette().color(QPalette::Mid));
     axisX->setLabelsColor(Qt::white);
     axisX->setTitleBrush(QBrush(Qt::white));
     chart->addAxis(axisX, Qt::AlignBottom);
@@ -448,8 +455,8 @@ void ServerMonitoringBar::showHistoryDialog(MetricButton::MetricType type)
     QValueAxis *axisY = new QValueAxis();
     axisY->setRange(0, 100);
     axisY->setTitleText(tr("Usage %"));
-    axisY->setGridLineColor(QColor("#3c3c3c"));
-    axisY->setLabelsColor(Qt::white);
+    axisY->setGridLineColor(palette().color(QPalette::Mid));
+    axisY->setLabelsColor(palette().color(QPalette::WindowText));
     axisY->setTitleBrush(QBrush(Qt::white));
     chart->addAxis(axisY, Qt::AlignLeft);
     m_historyDialogSeries->attachAxis(axisY);
@@ -457,7 +464,7 @@ void ServerMonitoringBar::showHistoryDialog(MetricButton::MetricType type)
     m_historyDialogChartView = new QChartView(chart);
     m_historyDialogChartView->setRenderHint(QPainter::Antialiasing);
     m_historyDialogChartView->setRubberBand(QChartView::HorizontalRubberBand);
-    m_historyDialogChartView->setStyleSheet("background-color: #2b2b2b; border: none;");
+    m_historyDialogChartView->setStyleSheet("background-color: palette(base); border: none;");
     
     auto *layout = new QVBoxLayout(m_historyDialog);
     layout->addWidget(m_historyDialogChartView);
